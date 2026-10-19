@@ -1,12 +1,21 @@
 
 import 'package:flutter/material.dart';
+import '../models/life_activity.dart';
 import '../models/life_event.dart';
 import '../services/statistics_service.dart';
 
 class StatisticsPage extends StatelessWidget {
   final List<LifeEvent> events;
+  final List<LifeActivity> activities;
 
-  const StatisticsPage({super.key, required this.events});
+  const StatisticsPage({super.key, required this.events, required this.activities});
+
+  String _activityName(String activityId) {
+    for (final activity in activities) {
+      if (activity.id == activityId) return activity.name;
+    }
+    return activityId;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +75,9 @@ class StatisticsPage extends StatelessWidget {
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(entry.key, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Expanded(child: Text(_activityName(entry.key), style: const TextStyle(fontWeight: FontWeight.w600))),
+                        const SizedBox(width: 8),
                         Text('${entry.value} (${(percentage * 100).toStringAsFixed(1)}%)'),
                       ],
                     ),

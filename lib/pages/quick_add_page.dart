@@ -6,12 +6,14 @@ class QuickAddPage extends StatelessWidget {
   final List<LifeActivity> activities;
   final Map<String, int> records;
   final ValueChanged<String> onAdd;
+  final VoidCallback onManage;
 
   const QuickAddPage({
     super.key,
     required this.activities,
     required this.records,
     required this.onAdd,
+    required this.onManage,
   });
 
   static const Map<String, IconData> _icons = {
@@ -38,7 +40,18 @@ class QuickAddPage extends StatelessWidget {
         const SizedBox(height: 8),
         const Text('Capture a moment with a single tap.', style: TextStyle(color: Colors.grey)),
         const SizedBox(height: 28),
-        const Text('Your activities', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Row(
+          children: [
+            const Expanded(
+              child: Text('Your activities', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ),
+            TextButton.icon(
+              onPressed: onManage,
+              icon: const Icon(Icons.tune),
+              label: const Text('Manage'),
+            ),
+          ],
+        ),
         const SizedBox(height: 14),
         if (activeActivities.isEmpty)
           const Card(
@@ -68,6 +81,7 @@ class QuickAddPage extends StatelessWidget {
                 color: Colors.white,
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
+                  key: Key('quick_add_${activity.id}'),
                   onTap: () => onAdd(activity.id),
                   child: Padding(
                     padding: const EdgeInsets.all(14),

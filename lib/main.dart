@@ -1,13 +1,15 @@
-
 import 'package:flutter/material.dart';
+
 import 'models/life_activity.dart';
 import 'models/life_event.dart';
+import 'pages/activity_management_page.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/quick_add_page.dart';
 import 'pages/statistics_page.dart';
 import 'services/activity_migration_service.dart';
 import 'services/activity_repository.dart';
 import 'services/life_event_storage.dart';
+import 'core/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,11 +24,7 @@ class LifeInNumbersApp extends StatelessWidget {
     return MaterialApp(
       title: 'Life in Numbers',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D9488)),
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
       home: const MainPage(),
     );
   }
@@ -60,7 +58,9 @@ class _MainPageState extends State<MainPage> {
       final savedEvents = await _storage.loadEvents();
       const migration = ActivityMigrationService();
       final needsMigration = migration.needsMigration(savedEvents);
-      final loadedEvents = needsMigration ? migration.migrateEvents(savedEvents) : savedEvents;
+      final loadedEvents = needsMigration
+          ? migration.migrateEvents(savedEvents)
+          : savedEvents;
 
       if (needsMigration) {
         await _storage.saveEvents(loadedEvents);
@@ -105,12 +105,38 @@ class _MainPageState extends State<MainPage> {
     setState(() => _events.add(event));
 
     final snapshot = List<LifeEvent>.of(_events);
-    _saveQueue = _saveQueue.then((_) => _storage.saveEvents(snapshot)).catchError((Object error) {
+    _saveQueue = _saveQueue
+        .then((_) => _storage.saveEvents(snapshot))
+        .catchError((Object error) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not save your records. Please try again.'),
+            ),
+          );
+        });
+  }
+
+  Future<void> _openActivityManagement() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ActivityManagementPage(repository: _activityRepository),
+      ),
+    );
+
+    if (!mounted) return;
+    try {
+      final activities = await _activityRepository.loadActivities();
+      if (!mounted) return;
+      setState(() => _activities = activities);
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not save your records. Please try again.')),
+        const SnackBar(content: Text('Unable to refresh activities.')),
       );
-    });
+    }
   }
 
   @override
@@ -145,9 +171,20 @@ class _MainPageState extends State<MainPage> {
 
     final records = _records;
     final pages = [
-      DashboardPage(records: records),
-      QuickAddPage(activities: _activities, records: records, onAdd: _addRecord),
-      StatisticsPage(events: _events),
+      DashboardPage(
+        records: records,
+        activities: _activities,
+        events: _events,
+        onAdd: _addRecord,
+        onShowAll: () => setState(() => _selectedIndex = 1),
+      ),
+      QuickAddPage(
+        activities: _activities,
+        records: records,
+        onAdd: _addRecord,
+        onManage: _openActivityManagement,
+      ),
+      StatisticsPage(events: _events, activities: _activities),
     ];
 
     return Scaffold(
@@ -155,14 +192,30 @@ class _MainPageState extends State<MainPage> {
         child: IndexedStack(index: _selectedIndex, children: pages),
       ),
       bottomNavigationBar: NavigationBar(
+        key: const Key('main_navigation'),
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
           setState(() => _selectedIndex = index);
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.add_circle_outline), selectedIcon: Icon(Icons.add_circle), label: 'Add'),
-          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Statistics'),
+          NavigationDestination(
+            key: Key('nav_home'),
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            key: Key('nav_add'),
+            icon: Icon(Icons.add_circle_outline),
+            selectedIcon: Icon(Icons.add_circle),
+            label: 'Add',
+          ),
+          NavigationDestination(
+            key: Key('nav_statistics'),
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: 'Statistics',
+          ),
         ],
       ),
     );
