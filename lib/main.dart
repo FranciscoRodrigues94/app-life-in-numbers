@@ -94,28 +94,64 @@ class _MainPageState extends State<MainPage> {
     return counts;
   }
 
-  void _addRecord(String activityId) {
-    final now = DateTime.now();
-    final event = LifeEvent(
-      id: '${now.microsecondsSinceEpoch}_${_events.length}',
-      activityId: activityId,
-      occurredAt: now,
+  
+void _addRecord(String activityId) {
+  debugPrint('Adding activity: $activityId');
+  final now = DateTime.now();
+  final event = LifeEvent(
+    id: '${now.microsecondsSinceEpoch}_${_events.length}',
+    activityId: activityId,
+    occurredAt: now,
+  );
+
+  setState(() => _events.add(event));
+  _saveEvents();
+
+  final activityName = _activities
+      .where((activity) => activity.id == activityId)
+      .map((activity) => activity.name)
+      .firstOrNull ?? activityId;
+
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.removeCurrentSnackBar();
+  messenger.showSnackBar(
+    SnackBar(
+      key: const Key('record_added_snackbar'),
+      content: Text('$activityName added'),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 5),
+      action: SnackBarAction(
+        label: 'Undo',
+        onPressed: () => _undoRecord(event.id),
+      ),
+    ),
+  );
+}
+
+
+void _undoRecord(String eventId) {
+  final index = _events.indexWhere((event) => event.id == eventId);
+  if (index == -1) return;
+
+  setState(() => _events.removeAt(index));
+  _saveEvents();
+}
+
+void _saveEvents() {
+  final snapshot = List<LifeEvent>.of(_events);
+
+  _saveQueue = _saveQueue
+      .then((_) => _storage.saveEvents(snapshot))
+      .catchError((Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Could not save your records. Please try again.'),
+      ),
     );
+  });
+}
 
-    setState(() => _events.add(event));
-
-    final snapshot = List<LifeEvent>.of(_events);
-    _saveQueue = _saveQueue
-        .then((_) => _storage.saveEvents(snapshot))
-        .catchError((Object error) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not save your records. Please try again.'),
-            ),
-          );
-        });
-  }
 
   Future<void> _openActivityManagement() async {
     await Navigator.push(
