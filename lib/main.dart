@@ -1,9 +1,12 @@
 
 import 'package:flutter/material.dart';
+import 'models/life_activity.dart';
 import 'models/life_event.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/quick_add_page.dart';
 import 'pages/statistics_page.dart';
+import 'services/activity_migration_service.dart';
+import 'services/activity_repository.dart';
 import 'services/life_event_storage.dart';
 
 void main() {
@@ -38,7 +41,9 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final LifeEventStorage _storage = LifeEventStorage();
+  final ActivityRepository _activityRepository = ActivityRepository();
   final List<LifeEvent> _events = [];
+  List<LifeActivity> _activities = [];
   Future<void> _saveQueue = Future<void>.value();
   int _selectedIndex = 0;
   bool _isLoading = true;
@@ -47,15 +52,28 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    _loadEvents();
+    _loadData();
   }
 
-  Future<void> _loadEvents() async {
+  Future<void> _loadData() async {
     try {
       final savedEvents = await _storage.loadEvents();
+      const migration = ActivityMigrationService();
+      final needsMigration = migration.needsMigration(savedEvents);
+      final loadedEvents = needsMigration ? migration.migrateEvents(savedEvents) : savedEvents;
+
+      if (needsMigration) {
+        await _storage.saveEvents(loadedEvents);
+      }
+
+      final loadedActivities = await _activityRepository.loadActivities();
+
       if (!mounted) return;
       setState(() {
-        _events.addAll(savedEvents);
+        _events
+          ..clear()
+          ..addAll(loadedEvents);
+        _activities = loadedActivities;
         _isLoading = false;
         _loadError = null;
       });
@@ -63,7 +81,7 @@ class _MainPageState extends State<MainPage> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _loadError = 'Unable to load your saved records.';
+        _loadError = 'Unable to load your saved data.';
       });
     }
   }
@@ -76,11 +94,11 @@ class _MainPageState extends State<MainPage> {
     return counts;
   }
 
-  void _addRecord(String activity) {
+  void _addRecord(String activityId) {
     final now = DateTime.now();
     final event = LifeEvent(
       id: '${now.microsecondsSinceEpoch}_${_events.length}',
-      activityId: activity,
+      activityId: activityId,
       occurredAt: now,
     );
 
@@ -98,33 +116,28 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_loadError != null) {
       return Scaffold(
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(_loadError!),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () {
-                    setState(() {
-                      _isLoading = true;
-                      _loadError = null;
-                    });
-                    _loadEvents();
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_loadError!),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _loadError = null;
+                  });
+                  _loadData();
+                },
+                child: const Text('Retry'),
+              ),
+            ],
           ),
         ),
       );
@@ -133,16 +146,13 @@ class _MainPageState extends State<MainPage> {
     final records = _records;
     final pages = [
       DashboardPage(records: records),
-      QuickAddPage(records: records, onAdd: _addRecord),
+      QuickAddPage(activities: _activities, records: records, onAdd: _addRecord),
       StatisticsPage(events: _events),
     ];
 
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: pages,
-        ),
+        child: IndexedStack(index: _selectedIndex, children: pages),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
