@@ -50,7 +50,7 @@ class QuickAddPage extends StatelessWidget {
             maxCrossAxisExtent: 220,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.35,
+            childAspectRatio: 150,
           ),
           itemCount: activities.length,
           itemBuilder: (context, index) {

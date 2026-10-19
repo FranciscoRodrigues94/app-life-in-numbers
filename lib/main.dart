@@ -134,7 +134,7 @@ class _MainPageState extends State<MainPage> {
     final pages = [
       DashboardPage(records: records),
       QuickAddPage(records: records, onAdd: _addRecord),
-      StatisticsPage(records: records),
+      StatisticsPage(events: _events),
     ];
 
     return Scaffold(
