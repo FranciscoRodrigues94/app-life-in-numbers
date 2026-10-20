@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'models/life_activity.dart';
 import 'models/life_event.dart';
 import 'pages/activity_management_page.dart';
@@ -117,15 +116,37 @@ void _addRecord(String activityId) {
   messenger.showSnackBar(
     SnackBar(
       key: const Key('record_added_snackbar'),
-      content: Text('$activityName added'),
+      persist: false,
       behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 3),
+      backgroundColor: AppColors.navy,
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      content: Row(
+        children: [
+          const Icon(Icons.check_circle_rounded, color: AppColors.sage, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              '$activityName added',
+              style: AppTypography.body.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
       action: SnackBarAction(
         label: 'Undo',
+        textColor: AppColors.sage,
         onPressed: () => _undoRecord(event.id),
       ),
     ),
   );
+
 }
 
 
