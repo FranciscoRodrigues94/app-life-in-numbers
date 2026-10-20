@@ -1,14 +1,13 @@
+
 import 'package:flutter/material.dart';
+import 'controllers/life_controller.dart';
+import 'core/theme/app_theme.dart';
 import 'models/life_activity.dart';
-import 'models/life_event.dart';
 import 'pages/activity_management_page.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/quick_add_page.dart';
 import 'pages/statistics_page.dart';
-import 'services/activity_migration_service.dart';
 import 'services/activity_repository.dart';
-import 'services/life_event_storage.dart';
-import 'core/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,41 +36,79 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final LifeEventStorage _storage = LifeEventStorage();
+  final LifeController _lifeController = LifeController();
   final ActivityRepository _activityRepository = ActivityRepository();
-  final List<LifeEvent> _events = [];
   List<LifeActivity> _activities = [];
-  Future<void> _saveQueue = Future<void>.value();
   int _selectedIndex = 0;
   bool _isLoading = true;
   String? _loadError;
+  String? _lastSaveError;
 
   @override
   void initState() {
     super.initState();
+    _lifeController.addListener(_onLifeChanged);
     _loadData();
   }
 
+  
+  void _onLifeChanged() {
+    if (!mounted) return;
+
+    setState(() {});
+
+    final saveError = _lifeController.saveError;
+    if (saveError == null) {
+      _lastSaveError = null;
+      return;
+    }
+
+    if (saveError == _lastSaveError) return;
+    _lastSaveError = saveError;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (messenger == null) return;
+
+      messenger.removeCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          key: const Key('record_save_error_snackbar'),
+          persist: false,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.navy,
+          duration: const Duration(seconds: 5),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: AppColors.peach),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  saveError,
+                  style: AppTypography.body.copyWith(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+
   Future<void> _loadData() async {
     try {
-      final savedEvents = await _storage.loadEvents();
-      const migration = ActivityMigrationService();
-      final needsMigration = migration.needsMigration(savedEvents);
-      final loadedEvents = needsMigration
-          ? migration.migrateEvents(savedEvents)
-          : savedEvents;
-
-      if (needsMigration) {
-        await _storage.saveEvents(loadedEvents);
+      await _lifeController.loadEvents();
+      if (_lifeController.error != null) {
+        throw StateError(_lifeController.error!);
       }
 
       final loadedActivities = await _activityRepository.loadActivities();
 
       if (!mounted) return;
       setState(() {
-        _events
-          ..clear()
-          ..addAll(loadedEvents);
         _activities = loadedActivities;
         _isLoading = false;
         _loadError = null;
@@ -85,101 +122,62 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  Map<String, int> get _records {
-    final counts = <String, int>{};
-    for (final event in _events) {
-      counts[event.activityId] = (counts[event.activityId] ?? 0) + 1;
-    }
-    return counts;
-  }
+  void _addRecord(String activityId) {
+    final event = _lifeController.addEvent(activityId);
 
-  
-void _addRecord(String activityId) {
-  debugPrint('Adding activity: $activityId');
-  final now = DateTime.now();
-  final event = LifeEvent(
-    id: '${now.microsecondsSinceEpoch}_${_events.length}',
-    activityId: activityId,
-    occurredAt: now,
-  );
+    final activityName = _activities
+        .where((activity) => activity.id == activityId)
+        .map((activity) => activity.name)
+        .firstOrNull ?? activityId;
 
-  setState(() => _events.add(event));
-  _saveEvents();
-
-  final activityName = _activities
-      .where((activity) => activity.id == activityId)
-      .map((activity) => activity.name)
-      .firstOrNull ?? activityId;
-
-  final messenger = ScaffoldMessenger.of(context);
-  messenger.removeCurrentSnackBar();
-  messenger.showSnackBar(
-    SnackBar(
-      key: const Key('record_added_snackbar'),
-      persist: false,
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 3),
-      backgroundColor: AppColors.navy,
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      content: Row(
-        children: [
-          const Icon(Icons.check_circle_rounded, color: AppColors.sage, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '$activityName added',
-              style: AppTypography.body.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        key: const Key('record_added_snackbar'),
+        persist: false,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+        backgroundColor: AppColors.navy,
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.sage,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '$activityName added',
+                style: AppTypography.body.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      action: SnackBarAction(
-        label: 'Undo',
-        textColor: AppColors.sage,
-        onPressed: () => _undoRecord(event.id),
-      ),
-    ),
-  );
-
-}
-
-
-void _undoRecord(String eventId) {
-  final index = _events.indexWhere((event) => event.id == eventId);
-  if (index == -1) return;
-
-  setState(() => _events.removeAt(index));
-  _saveEvents();
-}
-
-void _saveEvents() {
-  final snapshot = List<LifeEvent>.of(_events);
-
-  _saveQueue = _saveQueue
-      .then((_) => _storage.saveEvents(snapshot))
-      .catchError((Object error) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Could not save your records. Please try again.'),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'Undo',
+          textColor: AppColors.sage,
+          onPressed: () => _lifeController.removeEvent(event.id),
+        ),
       ),
     );
-  });
-}
-
+  }
 
   Future<void> _openActivityManagement() async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ActivityManagementPage(repository: _activityRepository),
+        builder: (context) => ActivityManagementPage(
+          repository: _activityRepository,
+        ),
       ),
     );
 
@@ -191,15 +189,26 @@ void _saveEvents() {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to refresh activities.')),
+        const SnackBar(
+          content: Text('Unable to refresh activities.'),
+        ),
       );
     }
   }
 
   @override
+  void dispose() {
+    _lifeController.removeListener(_onLifeChanged);
+    _lifeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (_loadError != null) {
@@ -226,12 +235,14 @@ void _saveEvents() {
       );
     }
 
-    final records = _records;
+    final records = _lifeController.records;
+    final events = _lifeController.events;
+
     final pages = [
       DashboardPage(
         records: records,
         activities: _activities,
-        events: _events,
+        events: events,
         onAdd: _addRecord,
         onShowAll: () => setState(() => _selectedIndex = 1),
       ),
@@ -241,12 +252,18 @@ void _saveEvents() {
         onAdd: _addRecord,
         onManage: _openActivityManagement,
       ),
-      StatisticsPage(events: _events, activities: _activities),
+      StatisticsPage(
+        events: events,
+        activities: _activities,
+      ),
     ];
 
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(index: _selectedIndex, children: pages),
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: pages,
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         key: const Key('main_navigation'),
