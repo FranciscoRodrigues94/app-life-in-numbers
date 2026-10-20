@@ -1,21 +1,34 @@
-import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../models/life_activity.dart';
+import '../models/life_category.dart';
 
-class QuickAddPage extends StatelessWidget {
+class QuickAddPage extends StatefulWidget {
   final List<LifeActivity> activities;
+  final List<LifeCategory> categories;
   final Map<String, int> records;
   final ValueChanged<String> onAdd;
+  final ValueChanged<String> onRemove;
   final VoidCallback onManage;
 
   const QuickAddPage({
     super.key,
     required this.activities,
+    required this.categories,
     required this.records,
     required this.onAdd,
+    required this.onRemove,
     required this.onManage,
   });
+
+  @override
+  State<QuickAddPage> createState() => _QuickAddPageState();
+}
+
+class _QuickAddPageState extends State<QuickAddPage> {
+  String _searchQuery = '';
+  String? _selectedCategoryId;
 
   static const Map<String, IconData> _icons = {
     'coffee': Icons.coffee_rounded,
@@ -39,9 +52,32 @@ class QuickAddPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeActivities = activities
-        .where((activity) => activity.isActive)
+    final availableCategories = widget.categories
+        .where((category) => category.isActive)
         .toList();
+
+    final selectedCategoryId = availableCategories.any(
+      (category) => category.id == _selectedCategoryId,
+    )
+        ? _selectedCategoryId
+        : null;
+
+    final filteredActivities = widget.activities.where((activity) {
+      if (!activity.isActive) return false;
+
+      final matchesSearch = activity.name
+          .toLowerCase()
+          .contains(_searchQuery);
+
+      final matchesCategory = selectedCategoryId == null ||
+          activity.categoryId == selectedCategoryId;
+
+      return matchesSearch && matchesCategory;
+    }).toList();
+
+    final hasActiveActivities = widget.activities.any(
+      (activity) => activity.isActive,
+    );
 
     return ListView(
       key: const Key('quick_add_page'),
@@ -58,14 +94,76 @@ class QuickAddPage extends StatelessWidget {
         const SizedBox(height: 12),
         Text(
           'ADD A MOMENT',
-          style: AppTypography.section.copyWith(fontSize: 39, height: 1.05),
+          style: AppTypography.section.copyWith(
+            fontSize: 39,
+            height: 1.05,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
-          'A little moment. A bigger picture.',
-          style: AppTypography.body.copyWith(color: AppColors.mutedText),
+          'What have you been up to?',
+          style: AppTypography.body.copyWith(
+            color: AppColors.mutedText,
+          ),
         ),
         const SizedBox(height: 28),
+        TextField(
+          key: const Key('activity_search'),
+          onChanged: (value) {
+            setState(() {
+              _searchQuery = value.trim().toLowerCase();
+            });
+          },
+          style: AppTypography.body,
+          decoration: InputDecoration(
+            hintText: 'Search your activities...',
+            hintStyle: AppTypography.body.copyWith(
+              color: AppColors.mutedText,
+            ),
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: AppColors.mutedText,
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 17,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _categoryChip(
+                label: 'All',
+                selected: selectedCategoryId == null,
+                onTap: () {
+                  setState(() => _selectedCategoryId = null);
+                },
+                key: const Key('category_all'),
+              ),
+              for (final category in availableCategories) ...[
+                const SizedBox(width: 8),
+                _categoryChip(
+                  label: category.name,
+                  selected: selectedCategoryId == category.id,
+                  onTap: () {
+                    setState(() => _selectedCategoryId = category.id);
+                  },
+                  key: Key('category_${category.id}'),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 30),
         Row(
           children: [
             Expanded(
@@ -76,56 +174,26 @@ class QuickAddPage extends StatelessWidget {
             ),
             TextButton.icon(
               key: const Key('manage_activities_button'),
-              onPressed: onManage,
-              icon: const Icon(Icons.tune_rounded, size: 18),
+              onPressed: widget.onManage,
+              icon: const Icon(
+                Icons.tune_rounded,
+                size: 18,
+              ),
               label: const Text('Manage'),
-              style: TextButton.styleFrom(foregroundColor: AppColors.navy),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.navy,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 5),
         Text(
-          'Tap any activity to record it instantly.',
+          '${filteredActivities.length} activities · Tap to record',
           style: AppTypography.caption,
         ),
         const SizedBox(height: 18),
-        if (activeActivities.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.add_circle_outline_rounded,
-                  size: 36,
-                  color: AppColors.accent,
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  'Your story starts here.',
-                  style: AppTypography.hero.copyWith(fontSize: 24),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Create or activate an activity to start recording your moments.',
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.mutedText,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: onManage,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Manage activities'),
-                ),
-              ],
-            ),
-          )
+        if (filteredActivities.isEmpty)
+          _emptyState(hasActiveActivities)
         else
           LayoutBuilder(
             builder: (context, constraints) {
@@ -138,13 +206,18 @@ class QuickAddPage extends StatelessWidget {
                 spacing: spacing,
                 runSpacing: spacing,
                 children: [
-                  for (var index = 0; index < activeActivities.length; index++)
+                  for (var index = 0;
+                      index < filteredActivities.length;
+                      index++)
                     SizedBox(
                       width: cardWidth,
                       child: _activityCard(
-                        activity: activeActivities[index],
-                        count: records[activeActivities[index].id] ?? 0,
-                        background: _tileColors[index % _tileColors.length],
+                        activity: filteredActivities[index],
+                        count: widget.records[
+                                filteredActivities[index].id] ??
+                            0,
+                        background:
+                            _tileColors[index % _tileColors.length],
                       ),
                     ),
                 ],
@@ -163,7 +236,7 @@ class QuickAddPage extends StatelessWidget {
               const Icon(
                 Icons.auto_awesome_rounded,
                 size: 27,
-                color: Color(0xFFDDECE0),
+                color: AppColors.sage,
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -183,6 +256,37 @@ class QuickAddPage extends StatelessWidget {
     );
   }
 
+  Widget _categoryChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    required Key key,
+  }) {
+    return Material(
+      color: selected ? AppColors.navy : AppColors.surface,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        key: key,
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 17,
+            vertical: 11,
+          ),
+          child: Text(
+            label,
+            style: AppTypography.body.copyWith(
+              color: selected ? Colors.white : AppColors.navy,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _activityCard({
     required LifeActivity activity,
     required int count,
@@ -196,9 +300,9 @@ class QuickAddPage extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         key: Key('quick_add_${activity.id}'),
-        onTap: () => onAdd(activity.id),
+        onTap: () => widget.onAdd(activity.id),
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.fromLTRB(18, 18, 12, 10),
           child: SizedBox(
             height: 126,
             child: Column(
@@ -206,7 +310,11 @@ class QuickAddPage extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(icon, color: AppColors.navy, size: 30),
+                    Icon(
+                      icon,
+                      color: AppColors.navy,
+                      size: 30,
+                    ),
                     const Spacer(),
                     Icon(
                       Icons.add_circle_outline_rounded,
@@ -226,16 +334,89 @@ class QuickAddPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                Text(
-                  '$count recorded',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.navy.withValues(alpha: 0.7),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '$count recorded',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.navy.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ),
+                    if (count > 0)
+                      IconButton(
+                        key: Key('remove_activity_${activity.id}'),
+                        tooltip: 'Manage recorded moments',
+                        onPressed: () => widget.onRemove(activity.id),
+                        icon: const Icon(Icons.remove_rounded),
+                        iconSize: 18,
+                        color: AppColors.navy.withValues(alpha: 0.65),
+                        visualDensity: VisualDensity.compact,
+                        constraints: const BoxConstraints(
+                          minWidth: 40,
+                          minHeight: 40,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor:
+                              Colors.white.withValues(alpha: 0.65),
+                        ),
+                      )
+                    else
+                      const SizedBox(width: 40, height: 40),
+                  ],
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _emptyState(bool hasActiveActivities) {
+    return Container(
+      key: const Key('quick_add_empty_state'),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.search_off_rounded,
+            size: 34,
+            color: AppColors.accent,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            hasActiveActivities
+                ? 'Nothing found.'
+                : 'Your story starts here.',
+            style: AppTypography.hero.copyWith(fontSize: 24),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            hasActiveActivities
+                ? 'Try another search or category.'
+                : 'Create or activate an activity to start recording.',
+            style: AppTypography.body.copyWith(
+              color: AppColors.mutedText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (!hasActiveActivities) ...[
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: widget.onManage,
+              child: const Text('Manage activities'),
+            ),
+          ],
+        ],
       ),
     );
   }

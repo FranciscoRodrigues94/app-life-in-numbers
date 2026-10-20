@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../models/life_activity.dart';
 import '../models/life_event.dart';
@@ -9,6 +9,7 @@ class DashboardPage extends StatelessWidget {
   final List<LifeActivity> activities;
   final List<LifeEvent> events;
   final ValueChanged<String> onAdd;
+  final ValueChanged<String> onRemove;
   final VoidCallback onShowAll;
 
   const DashboardPage({
@@ -17,6 +18,7 @@ class DashboardPage extends StatelessWidget {
     required this.activities,
     required this.events,
     required this.onAdd,
+    required this.onRemove,
     required this.onShowAll,
   });
 
@@ -81,9 +83,8 @@ class DashboardPage extends StatelessWidget {
     final totalRecords = events.length;
     final monthRecords = monthEvents.length;
     final trackedActivities = records.values.where((count) => count > 0).length;
-    final activeActivities = activities
-        .where((activity) => activity.isActive)
-        .take(6)
+    final recordedActivities = activities
+        .where((activity) => activity.isActive && (records[activity.id] ?? 0) > 0)
         .toList();
 
     final monthlyCounts = <String, int>{};
@@ -92,16 +93,30 @@ class DashboardPage extends StatelessWidget {
           (monthlyCounts[event.activityId] ?? 0) + 1;
     }
 
-    MapEntry<String, int>? topMonthlyActivity;
-    if (monthlyCounts.isNotEmpty) {
-      topMonthlyActivity = monthlyCounts.entries.reduce(
-        (a, b) => a.value >= b.value ? a : b,
-      );
-    }
+    
+    String highlight;
 
-    final highlight = topMonthlyActivity == null
-        ? 'Your next moment is waiting to be recorded.'
-        : '${_activityName(topMonthlyActivity.key)} is your most recorded activity this month, with ${topMonthlyActivity.value} moments.';
+    if (monthlyCounts.isEmpty) {
+      highlight = 'Your next moment is waiting to be recorded.';
+    } else {
+      final highestCount = monthlyCounts.values.reduce(
+        (a, b) => a > b ? a : b,
+      );
+
+      final topActivities = monthlyCounts.entries
+          .where((entry) => entry.value == highestCount)
+          .map((entry) => _activityName(entry.key))
+          .toList();
+
+      if (topActivities.length == 1) {
+        highlight = '${topActivities.first} is your most recorded activity this month, with $highestCount moments.';
+      } else {
+        highlight = topActivities.length <= 3
+          ? '${topActivities.join(', ')} are tied for your most recorded activities this month, with $highestCount moments each.'
+          : '${topActivities.length} activities are tied for your most recorded this month, with $highestCount moments each.';
+        }
+      }
+
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
@@ -143,7 +158,10 @@ class DashboardPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               child: const Padding(
                 padding: EdgeInsets.all(12),
-                child: Icon(Icons.auto_awesome_rounded, color: AppColors.navy),
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.navy,
+                ),
               ),
             ),
           ],
@@ -154,6 +172,7 @@ class DashboardPage extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: AppColors.navy,
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +204,10 @@ class DashboardPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              Container(height: 1, color: Colors.white.withValues(alpha: 0.18)),
+              Container(
+                height: 1,
+                color: Colors.white.withValues(alpha: 0.18),
+              ),
               const SizedBox(height: 18),
               Row(
                 children: [
@@ -207,15 +229,24 @@ class DashboardPage extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text('YOUR ACTIVITIES', style: AppTypography.section),
+              child: Text(
+                'YOUR ACTIVITIES',
+                style: AppTypography.section,
+              ),
             ),
-            TextButton(onPressed: onShowAll, child: const Text('See all')),
+            TextButton(
+              onPressed: onShowAll,
+              child: const Text('See all'),
+            ),
           ],
         ),
         const SizedBox(height: 6),
-        Text('One tap. One more moment.', style: AppTypography.caption),
+        Text(
+          'One tap. One more moment.',
+          style: AppTypography.caption,
+        ),
         const SizedBox(height: 16),
-        if (activeActivities.isEmpty)
+        if (recordedActivities.isEmpty)
           _emptyActivities()
         else
           LayoutBuilder(
@@ -229,11 +260,11 @@ class DashboardPage extends StatelessWidget {
                 spacing: spacing,
                 runSpacing: spacing,
                 children: [
-                  for (var i = 0; i < activeActivities.length; i++)
+                  for (var i = 0; i < recordedActivities.length; i++)
                     SizedBox(
                       width: width,
                       child: _activityTile(
-                        activeActivities[i],
+                        recordedActivities[i],
                         _tileColors[i % _tileColors.length],
                       ),
                     ),
@@ -242,7 +273,10 @@ class DashboardPage extends StatelessWidget {
             },
           ),
         const SizedBox(height: 32),
-        Text('HIGHLIGHTS', style: AppTypography.section),
+        Text(
+          'HIGHLIGHTS',
+          style: AppTypography.section,
+        ),
         const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.all(20),
@@ -300,17 +334,23 @@ class DashboardPage extends StatelessWidget {
       children: [
         Text(
           value,
-          style: AppTypography.hero.copyWith(fontSize: 25, color: Colors.white),
+          style: AppTypography.hero.copyWith(
+            fontSize: 25,
+            color: Colors.white,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: AppTypography.caption.copyWith(color: const Color(0xFFC4D1DC)),
+          style: AppTypography.caption.copyWith(
+            color: const Color(0xFFC4D1DC),
+          ),
         ),
       ],
     );
   }
 
+  
   Widget _activityTile(LifeActivity activity, Color background) {
     final icon = _icons[activity.iconName] ?? Icons.category_rounded;
     final count = records[activity.id] ?? 0;
@@ -323,7 +363,7 @@ class DashboardPage extends StatelessWidget {
         key: Key('quick_add_${activity.id}'),
         onTap: () => onAdd(activity.id),
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.fromLTRB(18, 18, 12, 10),
           child: SizedBox(
             height: 112,
             child: Column(
@@ -341,11 +381,35 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '$count recorded',
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.navy.withValues(alpha: 0.7),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '$count recorded',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.navy.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      key: Key('remove_activity_${activity.id}'),
+                      tooltip: 'Manage recorded moments',
+                      onPressed: () => onRemove(activity.id),
+                      icon: const Icon(Icons.remove_rounded),
+                      iconSize: 18,
+                      color: AppColors.navy.withValues(alpha: 0.65),
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.65),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -355,6 +419,7 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
+
   Widget _emptyActivities() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -363,7 +428,7 @@ class DashboardPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        'No active activities yet. Tap See all to manage your activities.',
+        'No moments recorded yet. Tap See all to record your first activity.',
         style: AppTypography.body,
       ),
     );

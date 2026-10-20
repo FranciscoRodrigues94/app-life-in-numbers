@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+
 import 'controllers/life_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'models/life_activity.dart';
@@ -8,6 +8,8 @@ import 'pages/dashboard_page.dart';
 import 'pages/quick_add_page.dart';
 import 'pages/statistics_page.dart';
 import 'services/activity_repository.dart';
+import 'models/life_category.dart';
+import 'services/category_repository.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +45,8 @@ class _MainPageState extends State<MainPage> {
   bool _isLoading = true;
   String? _loadError;
   String? _lastSaveError;
+  final CategoryRepository _categoryRepository = CategoryRepository();
+  List<LifeCategory> _categories = [];
 
   @override
   void initState() {
@@ -51,7 +55,6 @@ class _MainPageState extends State<MainPage> {
     _loadData();
   }
 
-  
   void _onLifeChanged() {
     if (!mounted) return;
 
@@ -97,7 +100,6 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-
   Future<void> _loadData() async {
     try {
       await _lifeController.loadEvents();
@@ -106,12 +108,14 @@ class _MainPageState extends State<MainPage> {
       }
 
       final loadedActivities = await _activityRepository.loadActivities();
+      final loadedCategories = await _categoryRepository.loadCategories();
 
       if (!mounted) return;
       setState(() {
         _activities = loadedActivities;
         _isLoading = false;
         _loadError = null;
+        _categories = loadedCategories;
       });
     } catch (error) {
       if (!mounted) return;
@@ -125,10 +129,12 @@ class _MainPageState extends State<MainPage> {
   void _addRecord(String activityId) {
     final event = _lifeController.addEvent(activityId);
 
-    final activityName = _activities
-        .where((activity) => activity.id == activityId)
-        .map((activity) => activity.name)
-        .firstOrNull ?? activityId;
+    final activityName =
+        _activities
+            .where((activity) => activity.id == activityId)
+            .map((activity) => activity.name)
+            .firstOrNull ??
+        activityId;
 
     final messenger = ScaffoldMessenger.of(context);
     messenger.removeCurrentSnackBar();
@@ -140,9 +146,7 @@ class _MainPageState extends State<MainPage> {
         duration: const Duration(seconds: 3),
         backgroundColor: AppColors.navy,
         elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Row(
           children: [
             const Icon(
@@ -171,13 +175,178 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
+  String _formatEventDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$day/$month/${date.year} at $hour:$minute';
+  }
+
+  Future<void> _openRecordHistory(String activityId) async {
+    final activityName =
+        _activities
+            .where((activity) => activity.id == activityId)
+            .map((activity) => activity.name)
+            .firstOrNull ??
+        activityId;
+
+    final activityEvents =
+        _lifeController.events
+            .where((event) => event.activityId == activityId)
+            .toList()
+          ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+
+    if (activityEvents.isEmpty) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: AppColors.background,
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              12,
+              20,
+              20 + MediaQuery.viewInsetsOf(sheetContext).bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activityName,
+                  style: AppTypography.section.copyWith(fontSize: 29),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Select a record to remove.',
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.mutedText,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: activityEvents.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final event = activityEvents[index];
+
+                      return Material(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        child: ListTile(
+                          key: Key('record_history_${event.id}'),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
+                          leading: const Icon(
+                            Icons.history_rounded,
+                            color: AppColors.navy,
+                          ),
+                          title: Text(
+                            _formatEventDate(event.occurredAt),
+                            style: AppTypography.body.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Recorded moment',
+                            style: AppTypography.caption,
+                          ),
+                          trailing: IconButton(
+                            key: Key('delete_record_${event.id}'),
+                            tooltip: 'Delete record',
+                            icon: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.redAccent,
+                            ),
+                            onPressed: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: sheetContext,
+                                builder: (dialogContext) => AlertDialog(
+                                  title: const Text('Delete this record?'),
+                                  content: Text(
+                                    'Remove the $activityName record from '
+                                    '${_formatEventDate(event.occurredAt)}? '
+                                    'This action cannot be undone.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      key: const Key('confirm_delete_record'),
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext, true),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.redAccent,
+                                      ),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirmed != true || !mounted || !sheetContext.mounted) return;
+
+                              final removed = _lifeController.removeEvent(
+                                event.id,
+                              );
+                              if (!removed) return;
+
+                              if (sheetContext.mounted) {
+                                Navigator.pop(sheetContext);
+                              }
+                              if (!mounted) return;
+
+                              final messenger = ScaffoldMessenger.of(context);
+                              messenger.removeCurrentSnackBar();
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  key: const Key('record_deleted_snackbar'),
+                                  persist: false,
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 3),
+                                  backgroundColor: AppColors.navy,
+                                  content: Text(
+                                    '$activityName record deleted',
+                                    style: AppTypography.body.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _openActivityManagement() async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ActivityManagementPage(
-          repository: _activityRepository,
-        ),
+        builder: (context) =>
+            ActivityManagementPage(repository: _activityRepository),
       ),
     );
 
@@ -189,9 +358,7 @@ class _MainPageState extends State<MainPage> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to refresh activities.'),
-        ),
+        const SnackBar(content: Text('Unable to refresh activities.')),
       );
     }
   }
@@ -206,9 +373,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_loadError != null) {
@@ -244,26 +409,23 @@ class _MainPageState extends State<MainPage> {
         activities: _activities,
         events: events,
         onAdd: _addRecord,
+        onRemove: _openRecordHistory,
         onShowAll: () => setState(() => _selectedIndex = 1),
       ),
       QuickAddPage(
         activities: _activities,
+        categories: _categories,
         records: records,
         onAdd: _addRecord,
+        onRemove: _openRecordHistory,
         onManage: _openActivityManagement,
       ),
-      StatisticsPage(
-        events: events,
-        activities: _activities,
-      ),
+      StatisticsPage(events: events, activities: _activities),
     ];
 
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: pages,
-        ),
+        child: IndexedStack(index: _selectedIndex, children: pages),
       ),
       bottomNavigationBar: NavigationBar(
         key: const Key('main_navigation'),
