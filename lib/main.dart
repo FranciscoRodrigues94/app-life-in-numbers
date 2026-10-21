@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'controllers/life_controller.dart';
+import 'controllers/mood_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'models/life_activity.dart';
 import 'pages/activity_management_page.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/quick_add_page.dart';
+import 'pages/mood_page.dart';
 import 'pages/statistics_page.dart';
 import 'services/activity_repository.dart';
 import 'models/life_category.dart';
@@ -39,6 +41,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final LifeController _lifeController = LifeController();
+  final MoodController _moodController = MoodController();
   final ActivityRepository _activityRepository = ActivityRepository();
   List<LifeActivity> _activities = [];
   int _selectedIndex = 0;
@@ -52,7 +55,12 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _lifeController.addListener(_onLifeChanged);
+    _moodController.addListener(_onMoodChanged);
     _loadData();
+  }
+
+  void _onMoodChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onLifeChanged() {
@@ -103,6 +111,7 @@ class _MainPageState extends State<MainPage> {
   Future<void> _loadData() async {
     try {
       await _lifeController.loadEvents();
+      await _moodController.loadEntries();
       if (_lifeController.error != null) {
         throw StateError(_lifeController.error!);
       }
@@ -367,6 +376,8 @@ class _MainPageState extends State<MainPage> {
   void dispose() {
     _lifeController.removeListener(_onLifeChanged);
     _lifeController.dispose();
+    _moodController.removeListener(_onMoodChanged);
+    _moodController.dispose();
     super.dispose();
   }
 
@@ -408,6 +419,8 @@ class _MainPageState extends State<MainPage> {
         records: records,
         activities: _activities,
         events: events,
+        feelings: _moodController.entries,
+        onShowMood: () => setState(() => _selectedIndex = 2),
         onAdd: _addRecord,
         onRemove: _openRecordHistory,
         onShowAll: () => setState(() => _selectedIndex = 1),
@@ -420,6 +433,7 @@ class _MainPageState extends State<MainPage> {
         onRemove: _openRecordHistory,
         onManage: _openActivityManagement,
       ),
+      MoodPage(controller: _moodController),
       StatisticsPage(events: events, activities: _activities),
     ];
 
@@ -445,6 +459,12 @@ class _MainPageState extends State<MainPage> {
             icon: Icon(Icons.add_circle_outline),
             selectedIcon: Icon(Icons.add_circle),
             label: 'Add',
+          ),
+          NavigationDestination(
+            key: Key('nav_mood'),
+            icon: Icon(Icons.favorite_border_rounded),
+            selectedIcon: Icon(Icons.favorite_rounded),
+            label: 'Mood',
           ),
           NavigationDestination(
             key: Key('nav_statistics'),

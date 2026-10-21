@@ -21,10 +21,9 @@ class _ActivityManagementPageState extends State<ActivityManagementPage> {
     'consumption': 'Consumption',
     'experiences': 'Experiences',
     'hobbies': 'Hobbies',
-    'activity': 'Activity',
+    'welness': 'Wellness',
     'social': 'Social',
     'fitness': 'Fitness',
-    'other': 'Other',
   };
 
   @override

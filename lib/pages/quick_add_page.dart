@@ -40,6 +40,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
     'shopping': Icons.shopping_bag_rounded,
     'people': Icons.people_rounded,
     'fitness': Icons.fitness_center_rounded,
+    'meditation': Icons.self_improvement_rounded,
     'category': Icons.category_rounded,
   };
 
@@ -65,10 +66,8 @@ class _QuickAddPageState extends State<QuickAddPage> {
     final filteredActivities = widget.activities.where((activity) {
       if (!activity.isActive) return false;
 
-      final matchesSearch = activity.name
-          .toLowerCase()
-          .contains(_searchQuery);
-
+      final matchesSearch =
+          activity.name.toLowerCase().contains(_searchQuery);
       final matchesCategory = selectedCategoryId == null ||
           activity.categoryId == selectedCategoryId;
 
@@ -164,27 +163,9 @@ class _QuickAddPageState extends State<QuickAddPage> {
           ),
         ),
         const SizedBox(height: 30),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'YOUR ACTIVITIES',
-                style: AppTypography.section.copyWith(fontSize: 25),
-              ),
-            ),
-            TextButton.icon(
-              key: const Key('manage_activities_button'),
-              onPressed: widget.onManage,
-              icon: const Icon(
-                Icons.tune_rounded,
-                size: 18,
-              ),
-              label: const Text('Manage'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.navy,
-              ),
-            ),
-          ],
+        Text(
+          'YOUR ACTIVITIES',
+          style: AppTypography.section.copyWith(fontSize: 25),
         ),
         const SizedBox(height: 5),
         Text(
@@ -403,19 +384,12 @@ class _QuickAddPageState extends State<QuickAddPage> {
           Text(
             hasActiveActivities
                 ? 'Try another search or category.'
-                : 'Create or activate an activity to start recording.',
+                : 'No activities are currently available.',
             style: AppTypography.body.copyWith(
               color: AppColors.mutedText,
             ),
             textAlign: TextAlign.center,
           ),
-          if (!hasActiveActivities) ...[
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: widget.onManage,
-              child: const Text('Manage activities'),
-            ),
-          ],
         ],
       ),
     );
