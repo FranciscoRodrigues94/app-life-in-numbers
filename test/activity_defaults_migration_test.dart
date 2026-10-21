@@ -45,4 +45,16 @@ void main() {
     final reloaded = await ActivityRepository().loadActivities();
     expect(reloaded.length, 10);
   });
+  test('Version 2 moves walking and meditation without changing IDs', () async {
+    final repository = ActivityRepository();
+    await repository.saveActivities(const [
+      LifeActivity(id: 'walking', name: 'Walking', categoryId: 'activity', iconName: 'walking'),
+      LifeActivity(id: 'meditation', name: 'Meditation', categoryId: 'hobbies', iconName: 'meditation'),
+    ]);
+
+    final migrated = await repository.loadActivities();
+    expect(migrated.firstWhere((item) => item.id == 'walking').categoryId, 'fitness');
+    expect(migrated.firstWhere((item) => item.id == 'meditation').categoryId, 'wellness');
+    expect(migrated.map((item) => item.id).toSet().length, 10);
+  });
 }

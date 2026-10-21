@@ -39,6 +39,6 @@ void main() {
     final ids = DefaultActivities.all.map((activity) => activity.id).toSet();
 
     expect(ids.length, DefaultActivities.all.length);
-    expect(DefaultActivities.all.length, 8);
+    expect(DefaultActivities.all.length, 10);
   });
 }

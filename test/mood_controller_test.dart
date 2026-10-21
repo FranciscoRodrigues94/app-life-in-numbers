@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:life_in_numbers/controllers/mood_controller.dart';
 import 'package:life_in_numbers/models/life_mood_entry.dart';
 import 'package:life_in_numbers/services/mood_repository.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 class FakeMoodRepository extends MoodRepository {
   List<LifeMoodEntry> savedEntries = [];
@@ -22,6 +24,9 @@ void main() {
   late MoodController controller;
 
   setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+
     repository = FakeMoodRepository();
     controller = MoodController(repository: repository);
   });

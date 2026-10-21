@@ -2,7 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:life_in_numbers/main.dart';
+import 'package:life_in_numbers/pages/dashboard_page.dart';
 import 'package:life_in_numbers/pages/quick_add_page.dart';
+import 'package:life_in_numbers/pages/mood_page.dart';
+import 'package:life_in_numbers/services/mood_repository.dart';
 import 'package:life_in_numbers/services/life_event_storage.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
@@ -31,6 +34,19 @@ Future<void> addCoffee(WidgetTester tester) async {
   await tester.pumpAndSettle();
 
   await dismissSnackBar(tester);
+}
+
+Future<void> scrollHomeTo(WidgetTester tester, Key key) async {
+  final homeScrollable = find.descendant(
+    of: find.byType(DashboardPage),
+    matching: find.byType(Scrollable),
+  );
+  await tester.scrollUntilVisible(
+    find.byKey(key),
+    220,
+    scrollable: homeScrollable.first,
+  );
+  await tester.pumpAndSettle();
 }
 
 Future<void> openCoffeeHistory(WidgetTester tester) async {
@@ -76,6 +92,40 @@ void main() {
     expect(navigation.selectedIndex, 1);
     expect(find.byType(QuickAddPage), findsOneWidget);
     expect(find.byKey(const Key('quick_add_coffee')), findsOneWidget);
+  });
+
+  testWidgets('Mood navigation records a feeling and updates Dashboard', (tester) async {
+    await tester.pumpWidget(const LifeInNumbersApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('nav_mood')));
+    await tester.pumpAndSettle();
+    expect(find.byType(MoodPage), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('mood_joy')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('1 recorded'), findsWidgets);
+
+    final saved = await MoodRepository().loadEntries();
+    expect(saved.where((entry) => entry.primaryEmotionId == 'joy'), hasLength(1));
+    await dismissSnackBar(tester);
+
+    await tester.tap(find.byKey(const Key('nav_home')));
+    await tester.pumpAndSettle();
+    await scrollHomeTo(tester, const Key('dashboard_feeling_joy'));
+    expect(find.byKey(const Key('dashboard_feeling_joy')), findsOneWidget);
+  });
+
+  testWidgets('Light Add does not offer activity management', (tester) async {
+    await tester.pumpWidget(const LifeInNumbersApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('nav_add')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('manage_activities_button')), findsNothing);
+    expect(find.byKey(const Key('category_other')), findsNothing);
+    expect(find.byKey(const Key('category_activity')), findsNothing);
+    expect(find.byKey(const Key('category_wellness')), findsOneWidget);
   });
 
   testWidgets('Undo removes the recorded event', (tester) async {
@@ -175,6 +225,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('dashboard_greeting')), findsOneWidget);
+    await scrollHomeTo(tester, const Key('quick_add_coffee'));
     expect(find.byKey(const Key('quick_add_coffee')), findsOneWidget);
     expect(find.byKey(const Key('remove_activity_coffee')), findsOneWidget);
 

@@ -42,10 +42,9 @@ void main() {
       'consumption',
       'experiences',
       'hobbies',
-      'activity',
+      'wellness',
       'social',
       'fitness',
-      'other',
     };
 
     final categoryIds = DefaultCategories.all

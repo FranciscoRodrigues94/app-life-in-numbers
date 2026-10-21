@@ -16,7 +16,7 @@ void main() {
   test('Loads default categories on first launch', () async {
     final categories = await repository.loadCategories();
 
-    expect(categories.length, 7);
+    expect(categories.length, 6);
     expect(categories.any((category) => category.id == 'hobbies'), isTrue);
   });
 
@@ -60,13 +60,30 @@ void main() {
     final hobbies = categories.firstWhere((item) => item.id == 'hobbies');
 
     expect(hobbies.isActive, isFalse);
-    expect(categories.length, 7);
+    expect(categories.length, 6);
   });
 
-  test('Preserves an intentionally empty category list', () async {
+  test('Preserves an intentionally empty category list after initialization', () async {
+    await repository.loadCategories();
     await repository.saveCategories([]);
 
     final categories = await repository.loadCategories();
     expect(categories, isEmpty);
+  });
+  test('Migrates saved categories: adds Wellness and hides Activity and Other', () async {
+    await repository.saveCategories(const [
+      LifeCategory(id: 'activity', name: 'Activity'),
+      LifeCategory(id: 'other', name: 'Other'),
+      LifeCategory(id: 'fitness', name: 'Fitness'),
+    ]);
+
+    final categories = await repository.loadCategories();
+    expect(categories.firstWhere((item) => item.id == 'wellness').isActive, isTrue);
+    expect(categories.firstWhere((item) => item.id == 'activity').isActive, isFalse);
+    expect(categories.firstWhere((item) => item.id == 'other').isActive, isFalse);
+    expect(categories.firstWhere((item) => item.id == 'fitness').isActive, isTrue);
+
+    final reloaded = await CategoryRepository().loadCategories();
+    expect(reloaded.firstWhere((item) => item.id == 'other').isActive, isFalse);
   });
 }

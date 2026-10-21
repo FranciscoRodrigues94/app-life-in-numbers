@@ -16,7 +16,7 @@ void main() {
   test('Loads default activities on first launch', () async {
     final activities = await repository.loadActivities();
 
-    expect(activities.length, 8);
+    expect(activities.length, 10);
     expect(activities.any((activity) => activity.id == 'coffee'), isTrue);
   });
 
@@ -33,7 +33,7 @@ void main() {
     final newRepository = ActivityRepository();
     final activities = await newRepository.loadActivities();
 
-    expect(activities.length, 9);
+    expect(activities.length, 11);
     expect(activities.any((item) => item.id == 'gym'), isTrue);
   });
 
@@ -71,10 +71,11 @@ void main() {
     final coffee = activities.firstWhere((item) => item.id == 'coffee');
 
     expect(coffee.isActive, isFalse);
-    expect(activities.length, 8);
+    expect(activities.length, 10);
   });
 
-  test('Preserves an intentionally empty activity list', () async {
+  test('Preserves an intentionally empty activity list after initialization', () async {
+    await repository.loadActivities();
     await repository.saveActivities([]);
 
     final activities = await repository.loadActivities();
