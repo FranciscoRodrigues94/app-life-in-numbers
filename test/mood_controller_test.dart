@@ -46,11 +46,11 @@ void main() {
   test('Adds and saves a primary emotion', () async {
     await controller.loadEntries();
 
-    final entry = controller.addFeeling('joy');
+    final entry = controller.addFeeling('happiness');
     await controller.waitForPendingSaves();
 
     expect(controller.entries.length, 1);
-    expect(entry.primaryEmotionId, 'joy');
+    expect(entry.primaryEmotionId, 'happiness');
     expect(entry.secondaryEmotionId, isNull);
     expect(repository.savedEntries.length, 1);
     expect(repository.savedEntries.first.id, entry.id);
@@ -59,13 +59,13 @@ void main() {
   test('Counts feelings by primary emotion', () async {
     await controller.loadEntries();
 
-    controller.addFeeling('joy');
-    controller.addFeeling('joy');
+    controller.addFeeling('happiness');
+    controller.addFeeling('happiness');
     controller.addFeeling('sadness');
 
     await controller.waitForPendingSaves();
 
-    expect(controller.emotionCounts['joy'], 2);
+    expect(controller.emotionCounts['happiness'], 2);
     expect(controller.emotionCounts['sadness'], 1);
     expect(controller.entries.length, 3);
   });
@@ -91,7 +91,7 @@ void main() {
   test('Removes a specific feeling without deleting others', () async {
     await controller.loadEntries();
 
-    final first = controller.addFeeling('joy');
+    final first = controller.addFeeling('happiness');
     final second = controller.addFeeling('anger');
 
     await controller.waitForPendingSaves();

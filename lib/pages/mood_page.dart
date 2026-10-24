@@ -7,11 +7,12 @@ import '../models/life_mood_entry.dart';
 
 class MoodPage extends StatelessWidget {
   final MoodController controller;
+  final void Function(String message, VoidCallback onUndo)? onShowNotice;
 
-  const MoodPage({super.key, required this.controller});
+  const MoodPage({super.key, required this.controller, this.onShowNotice});
 
   static const Map<String, IconData> _icons = {
-    'joy': Icons.wb_sunny_rounded,
+    'happiness': Icons.wb_sunny_rounded,
     'sadness': Icons.water_drop_rounded,
     'anger': Icons.local_fire_department_rounded,
     'fear': Icons.shield_outlined,
@@ -20,7 +21,7 @@ class MoodPage extends StatelessWidget {
   };
 
   static const Map<String, Color> _colors = {
-    'joy': Color(0xFFF5D98B),
+    'happiness': Color(0xFFF5D98B),
     'sadness': Color(0xFFB8CFEA),
     'anger': Color(0xFFEDB5A8),
     'fear': Color(0xFFD7C4E8),
@@ -35,6 +36,13 @@ class MoodPage extends StatelessWidget {
     final emotion = DefaultEmotions.primary.firstWhere(
       (item) => item.id == emotionId,
     );
+
+    if (onShowNotice != null) {
+      onShowNotice!('${emotion.name} recorded', () {
+        controller.removeFeeling(entry.id);
+      });
+      return;
+    }
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()

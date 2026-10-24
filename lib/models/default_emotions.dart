@@ -12,7 +12,7 @@ class LifeEmotion {
 
 class DefaultEmotions {
   static const List<LifeEmotion> primary = [
-    LifeEmotion(id: 'joy', name: 'Joy', iconName: 'sun'),
+    LifeEmotion(id: 'happiness', name: 'Happiness', iconName: 'sun'),
     LifeEmotion(id: 'sadness', name: 'Sadness', iconName: 'cloud'),
     LifeEmotion(id: 'anger', name: 'Anger', iconName: 'flame'),
     LifeEmotion(id: 'fear', name: 'Fear', iconName: 'shield'),

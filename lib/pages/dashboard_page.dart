@@ -14,6 +14,9 @@ class DashboardPage extends StatefulWidget {
   final List<LifeEvent> events;
   final List<LifeMoodEntry> feelings;
   final VoidCallback onShowMood;
+  final ValueChanged<String> onAddFeeling;
+  final String userName;
+  final VoidCallback onEditName;
   final ValueChanged<String> onAdd;
   final ValueChanged<String> onRemove;
   final VoidCallback onShowAll;
@@ -25,6 +28,9 @@ class DashboardPage extends StatefulWidget {
     required this.events,
     required this.feelings,
     required this.onShowMood,
+    required this.onAddFeeling,
+    required this.userName,
+    required this.onEditName,
     required this.onAdd,
     required this.onRemove,
     required this.onShowAll,
@@ -68,6 +74,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   static const Map<String, IconData> _emotionIcons = {
     'joy': Icons.wb_sunny_rounded,
+    'happiness': Icons.wb_sunny_rounded,
     'sadness': Icons.water_drop_rounded,
     'anger': Icons.local_fire_department_rounded,
     'fear': Icons.shield_outlined,
@@ -77,6 +84,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   static const Map<String, Color> _emotionColors = {
     'joy': Color(0xFFF5D98B),
+    'happiness': Color(0xFFF5D98B),
     'sadness': Color(0xFFB8CFEA),
     'anger': Color(0xFFEDB5A8),
     'fear': Color(0xFFD7C4E8),
@@ -92,9 +100,8 @@ class _DashboardPageState extends State<DashboardPage> {
   ];
 
   String _greeting(int hour) {
-    if (hour < 12) return 'Good morning.';
-    if (hour < 18) return 'Good afternoon.';
-    return 'Good evening.';
+    final period = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    return widget.userName.trim().isEmpty ? '$period.' : '$period, ${widget.userName.trim()}.';
   }
 
   String _monthName(int month) {
@@ -190,7 +197,8 @@ class _DashboardPageState extends State<DashboardPage> {
     }
     final recordedEmotions = DefaultEmotions.primary
         .where((emotion) => (emotionCounts[emotion.id] ?? 0) > 0)
-        .toList();
+        .toList()
+      ..sort((a, b) => (emotionCounts[b.id] ?? 0).compareTo(emotionCounts[a.id] ?? 0));
 
     final totalRecords = widget.events.length;
     final trackedActivities = widget.records.values
@@ -202,7 +210,8 @@ class _DashboardPageState extends State<DashboardPage> {
           (activity) =>
               activity.isActive && (widget.records[activity.id] ?? 0) > 0,
         )
-        .toList();
+        .toList()
+      ..sort((a, b) => (widget.records[b.id] ?? 0).compareTo(widget.records[a.id] ?? 0));
 
     final highlights = _buildHighlights(now);
     final currentIndex = highlights.isEmpty
@@ -229,10 +238,23 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    _greeting(now.hour),
-                    key: const Key('dashboard_greeting'),
-                    style: AppTypography.hero.copyWith(fontSize: 36),
+                  InkWell(
+                    key: const Key('dashboard_edit_name'),
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: widget.onEditName,
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _greeting(now.hour),
+                            key: const Key('dashboard_greeting'),
+                            style: AppTypography.hero.copyWith(fontSize: 36),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.edit_outlined, size: 17, color: AppColors.mutedText),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -298,13 +320,10 @@ class _DashboardPageState extends State<DashboardPage> {
               Row(
                 children: [
                   Expanded(
-                    child: _heroMetric('$totalRecords', 'All-time moments'),
+                    child: _heroMetric('$trackedActivities', 'Activities tracked'),
                   ),
                   Expanded(
-                    child: _heroMetric(
-                      '$trackedActivities',
-                      'Activities tracked',
-                    ),
+                    child: _heroMetric('$totalRecords', 'All-time moments'),
                   ),
                 ],
               ),
@@ -625,7 +644,7 @@ class _DashboardPageState extends State<DashboardPage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         key: Key('dashboard_feeling_${emotion.id}'),
-        onTap: widget.onShowMood,
+        onTap: () => widget.onAddFeeling(emotion.id),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(18, 18, 12, 10),
           child: SizedBox(

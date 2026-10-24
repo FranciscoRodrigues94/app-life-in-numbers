@@ -102,19 +102,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(MoodPage), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('mood_joy')));
+    await tester.tap(find.byKey(const Key('mood_happiness')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('1 recorded'), findsWidgets);
 
     final saved = await MoodRepository().loadEntries();
-    expect(saved.where((entry) => entry.primaryEmotionId == 'joy'), hasLength(1));
+    expect(saved.where((entry) => entry.primaryEmotionId == 'happiness'), hasLength(1));
     await dismissSnackBar(tester);
 
     await tester.tap(find.byKey(const Key('nav_home')));
     await tester.pumpAndSettle();
-    await scrollHomeTo(tester, const Key('dashboard_feeling_joy'));
-    expect(find.byKey(const Key('dashboard_feeling_joy')), findsOneWidget);
+    await scrollHomeTo(tester, const Key('dashboard_feeling_happiness'));
+    expect(find.byKey(const Key('dashboard_feeling_happiness')), findsOneWidget);
   });
 
   testWidgets('Light Add does not offer activity management', (tester) async {

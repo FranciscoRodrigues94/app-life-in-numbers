@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'controllers/life_controller.dart';
 import 'controllers/mood_controller.dart';
@@ -11,6 +13,7 @@ import 'pages/mood_page.dart';
 import 'pages/statistics_page.dart';
 import 'services/activity_repository.dart';
 import 'models/life_category.dart';
+import 'models/default_emotions.dart';
 import 'services/category_repository.dart';
 
 void main() {
@@ -50,6 +53,11 @@ class _MainPageState extends State<MainPage> {
   String? _lastSaveError;
   final CategoryRepository _categoryRepository = CategoryRepository();
   List<LifeCategory> _categories = [];
+  String _userName = '';
+  final SharedPreferencesAsync _profilePreferences = SharedPreferencesAsync();
+  static const String _userNameKey = 'life_user_name';
+  OverlayEntry? _recordNotice;
+  Timer? _recordNoticeTimer;
 
   @override
   void initState() {
@@ -118,6 +126,7 @@ class _MainPageState extends State<MainPage> {
 
       final loadedActivities = await _activityRepository.loadActivities();
       final loadedCategories = await _categoryRepository.loadCategories();
+      final savedName = await _profilePreferences.getString(_userNameKey) ?? '';
 
       if (!mounted) return;
       setState(() {
@@ -125,6 +134,7 @@ class _MainPageState extends State<MainPage> {
         _isLoading = false;
         _loadError = null;
         _categories = loadedCategories;
+        _userName = savedName;
       });
     } catch (error) {
       if (!mounted) return;
@@ -135,53 +145,137 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  void _hideRecordNotice() {
+    _recordNoticeTimer?.cancel();
+    _recordNoticeTimer = null;
+    _recordNotice?.remove();
+    _recordNotice?.dispose();
+    _recordNotice = null;
+  }
+
+  void _showRecordNotice(String message, VoidCallback onUndo) {
+    _hideRecordNotice();
+    final topPadding = MediaQuery.viewPaddingOf(context).top + 12;
+    final overlay = Overlay.of(context);
+    _recordNotice = OverlayEntry(
+      builder: (overlayContext) => Positioned(
+        top: topPadding,
+        left: 16,
+        right: 16,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: -1, end: 0),
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          builder: (context, progress, child) => Transform.translate(
+            offset: Offset(0, progress * 64),
+            child: Opacity(opacity: (1 + progress).clamp(0.0, 1.0), child: child),
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Material(
+                key: const Key('record_added_snackbar'),
+                elevation: 12,
+                shadowColor: AppColors.navy.withValues(alpha: 0.18),
+                color: AppColors.navy,
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle_rounded, color: AppColors.sage, size: 25),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          message,
+                          style: AppTypography.body.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          _hideRecordNotice();
+                          onUndo();
+                        },
+                        child: const Text('Undo', style: TextStyle(color: AppColors.sage)),
+                      ),
+                      IconButton(
+                        onPressed: _hideRecordNotice,
+                        tooltip: 'Dismiss notification',
+                        icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(_recordNotice!);
+    _recordNoticeTimer = Timer(const Duration(seconds: 3), _hideRecordNotice);
+  }
+
+  void _addFeeling(String emotionId) {
+    if (_moodController.isLoading || _moodController.error != null) return;
+    final entry = _moodController.addFeeling(emotionId);
+    final name = DefaultEmotions.primary
+        .where((emotion) => emotion.id == emotionId)
+        .map((emotion) => emotion.name)
+        .firstOrNull ?? emotionId;
+    _showRecordNotice('$name recorded', () {
+      _moodController.removeFeeling(entry.id);
+    });
+  }
+
+  Future<void> _editUserName() async {
+    final textController = TextEditingController(text: _userName);
+    try {
+      final newName = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('What should we call you?'),
+          content: TextField(
+            controller: textController,
+            autofocus: true,
+            maxLength: 40,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(hintText: 'Your first name'),
+            onSubmitted: (value) => Navigator.pop(dialogContext, value.trim()),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(dialogContext, textController.text.trim()), child: const Text('Save')),
+          ],
+        ),
+      );
+      if (newName == null || !mounted) return;
+      await _profilePreferences.setString(_userNameKey, newName);
+      if (mounted) setState(() => _userName = newName);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to save your name.')),
+        );
+      }
+    } finally {
+      textController.dispose();
+    }
+  }
+
   void _addRecord(String activityId) {
     final event = _lifeController.addEvent(activityId);
-
-    final activityName =
-        _activities
+    final activityName = _activities
             .where((activity) => activity.id == activityId)
             .map((activity) => activity.name)
             .firstOrNull ??
         activityId;
-
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.removeCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        key: const Key('record_added_snackbar'),
-        persist: false,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-        backgroundColor: AppColors.navy,
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Row(
-          children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              color: AppColors.sage,
-              size: 22,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '$activityName added',
-                style: AppTypography.body.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        action: SnackBarAction(
-          label: 'Undo',
-          textColor: AppColors.sage,
-          onPressed: () => _lifeController.removeEvent(event.id),
-        ),
-      ),
-    );
+    _showRecordNotice('$activityName added', () {
+      _lifeController.removeEvent(event.id);
+    });
   }
 
   String _formatEventDate(DateTime date) {
@@ -306,17 +400,25 @@ class _MainPageState extends State<MainPage> {
                                 ),
                               );
 
-                              if (confirmed != true || !mounted || !sheetContext.mounted) return;
+                              if (confirmed != true ||
+                                  !mounted ||
+                                  !sheetContext.mounted) {
+                                return;
+                              }
 
                               final removed = _lifeController.removeEvent(
                                 event.id,
                               );
-                              if (!removed) return;
+                              if (!removed) {
+                                return;
+                              }
 
                               if (sheetContext.mounted) {
                                 Navigator.pop(sheetContext);
                               }
-                              if (!mounted) return;
+                              if (!mounted) {
+                                return;
+                              }
 
                               final messenger = ScaffoldMessenger.of(context);
                               messenger.removeCurrentSnackBar();
@@ -374,6 +476,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void dispose() {
+    _hideRecordNotice();
     _lifeController.removeListener(_onLifeChanged);
     _lifeController.dispose();
     _moodController.removeListener(_onMoodChanged);
@@ -421,6 +524,9 @@ class _MainPageState extends State<MainPage> {
         events: events,
         feelings: _moodController.entries,
         onShowMood: () => setState(() => _selectedIndex = 2),
+        onAddFeeling: _addFeeling,
+        userName: _userName,
+        onEditName: _editUserName,
         onAdd: _addRecord,
         onRemove: _openRecordHistory,
         onShowAll: () => setState(() => _selectedIndex = 1),
@@ -433,8 +539,12 @@ class _MainPageState extends State<MainPage> {
         onRemove: _openRecordHistory,
         onManage: _openActivityManagement,
       ),
-      MoodPage(controller: _moodController),
-      StatisticsPage(events: events, activities: _activities),
+      MoodPage(controller: _moodController, onShowNotice: _showRecordNotice),
+      StatisticsPage(
+        events: events,
+        activities: _activities,
+        feelings: _moodController.entries,
+      ),
     ];
 
     return Scaffold(
