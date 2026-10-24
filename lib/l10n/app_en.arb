@@ -1,0 +1,352 @@
+{
+  "@@locale": "en",
+  "welcomeHello": "Hello!",
+  "welcomeTitle": "Welcome to Life in Numbers.",
+  "welcomeDescription": "Every little moment counts.\nLet's make this space yours.",
+  "welcomeNameHint": "What should we call you?",
+  "welcomeContinue": "Continue",
+  "welcomeNameRequired": "Please enter your name.",
+  "welcomeSaveError": "Unable to save your name. Please try again.",
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsLanguageDescription": "Choose the language used in Life in Numbers.",
+  "settingsSystemDefault": "Automatic (System)",
+  "dashboardGoodMorning": "Good morning",
+  "dashboardGoodAfternoon": "Good afternoon",
+  "dashboardGoodEvening": "Good evening",
+  "dashboardSubtitle": "Your moments. Your feelings. Your story.",
+  "dashboardMomentsRecorded": "{count, plural, one{moment recorded} other{moments recorded}}",
+  "dashboardActivitiesTracked": "Activities tracked",
+  "dashboardAllTimeMoments": "All-time moments",
+  "dashboardFeelingsThisMonth": "Feelings this month",
+  "dashboardAllTimeFeelings": "All-time feelings",
+  "dashboardYourActivities": "YOUR ACTIVITIES",
+  "dashboardYourFeelings": "YOUR FEELINGS",
+  "dashboardSeeAll": "See all",
+  "dashboardActivitiesSubtitle": "One tap. One more moment.",
+  "dashboardFeelingsSubtitle": "A little check-in with yourself.",
+  "dashboardNoFeelings": "No feelings recorded yet. Tap See all to log your first feeling.",
+  "dashboardHighlights": "HIGHLIGHTS",
+  "dashboardSource": "Source: {source}",
+  "dashboardPreviousHighlight": "Previous highlight",
+  "dashboardNextHighlight": "Next highlight",
+  "dashboardRecorded": "{count} recorded",
+  "dashboardManageMoments": "Manage recorded moments",
+  "dashboardNoActivities": "No moments recorded yet. Tap See all to record your first activity.",
+  "dashboardLifeInNumbersLabel": "YOUR LIFE IN NUMBERS",
+  "dashboardDidYouKnow": "DID YOU KNOW? · {activity}",
+  "dashboardEmotionJoy": "Joy",
+  "dashboardEmotionHappiness": "Happiness",
+  "dashboardEmotionSadness": "Sadness",
+  "dashboardEmotionAnger": "Anger",
+  "dashboardEmotionFear": "Fear",
+  "dashboardEmotionDisgust": "Disgust",
+  "dashboardEmotionSurprise": "Surprise",
+  "@dashboardMomentsRecorded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@dashboardRecorded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@dashboardSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "@dashboardDidYouKnow": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      }
+    }
+  },
+  "addMomentTitle": "ADD A MOMENT",
+  "addMomentSubtitle": "What have you been up to?",
+  "addSearchHint": "Search your activities...",
+  "addAllCategories": "All",
+  "addActivityCount": "{count, plural, =0{No activities · Tap to record} one{1 activity · Tap to record} other{{count} activities · Tap to record}}",
+  "addClosingMessage": "Every little moment adds to your story.",
+  "addNothingFound": "Nothing found.",
+  "addStoryStartsHere": "Your story starts here.",
+  "addTryAnotherSearch": "Try another search or category.",
+  "addNoActivitiesAvailable": "No activities are currently available.",
+  "@addActivityCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moodTitle": "LOG A FEELING",
+  "moodSubtitle": "How are you feeling right now?",
+  "moodFeelingRecorded": "{name} recorded",
+  "moodUndo": "UNDO",
+  "moodDeleteTitle": "Delete this feeling?",
+  "moodDeleteDescription": "This feeling will be removed from your history.",
+  "moodCancel": "Cancel",
+  "moodDelete": "Delete",
+  "moodRecordedCount": "{count} recorded",
+  "moodDeleteTooltip": "Delete feeling",
+  "moodTapHint": "Tap an emotion to record it.",
+  "moodHistoryCount": "{count, plural, =0{No feelings recorded} =1{1 feeling recorded} other{{count} feelings recorded}}",
+  "moodEmptyTitle": "Your emotional story starts here.",
+  "moodEmptyDescription": "Record a feeling to start discovering your patterns.",
+  "@moodFeelingRecorded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@moodRecordedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@moodHistoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statisticsTitle": "STATISTICS",
+  "statisticsSubtitle": "Your life, seen through numbers.",
+  "statisticsOverview": "Your life at a glance",
+  "statisticsAllTime": "ALL-TIME",
+  "statisticsThisMonth": "THIS MONTH",
+  "statisticsLast7": "LAST 7 DAYS",
+  "statisticsToday": "TODAY",
+  "statisticsTotalMoments": "Total moments",
+  "statisticsMomentsRecorded": "Moments recorded",
+  "statisticsMomentsToday": "Moments today",
+  "statisticsMoments": "MOMENTS",
+  "statisticsMomentsHint": "Swipe to explore your activity patterns.",
+  "statisticsEmptyMoments": "No moments recorded yet.",
+  "statisticsEmptyMomentWeekdays": "Log moments to discover your weekday activity mix.",
+  "statisticsEmptyMomentMonths": "Log moments to discover your monthly activity mix.",
+  "statisticsFeelingsHint": "The emotions you have recorded, independently of moments.",
+  "statisticsFeelingsRecorded": "Feelings recorded",
+  "statisticsFeelingsToday": "Feelings today",
+  "statisticsFeelingsMonth": "Feelings this month",
+  "statisticsEmptyFeelings": "Record your first feeling to see your emotional patterns.",
+  "statisticsEmptyFeelingWeekdays": "Log feelings to discover your weekday emotion mix.",
+  "statisticsEmptyFeelingMonths": "Log feelings to discover your monthly emotion mix.",
+  "statisticsMomentsFeelings": "MOMENTS & FEELINGS",
+  "statisticsInsightHint": "Patterns found across your recorded moments and feelings.",
+  "statisticsInsufficientTitle": "Your patterns are taking shape.",
+  "statisticsInsufficientMessage": "Log moments and feelings on more days to reveal meaningful same-day patterns. No conclusions are generated from too little data.",
+  "statisticsPreviousChart": "Previous chart",
+  "statisticsNextChart": "Next chart",
+  "statisticsCompareHint": "Choose one or more to compare. Tap a day or month for details.",
+  "statisticsTop3": "Top 3",
+  "statisticsEmptyPeriod": "No records for this period.",
+  "statisticsBreakdown": "Breakdown",
+  "statisticsWeekdays": "Weekdays",
+  "statisticsOverTime": "Over time",
+  "statisticsMon": "Mon",
+  "statisticsTue": "Tue",
+  "statisticsWed": "Wed",
+  "statisticsThu": "Thu",
+  "statisticsFri": "Fri",
+  "statisticsSat": "Sat",
+  "statisticsSun": "Sun",
+  "statisticsPeriodCount": "{period} · {count} recorded",
+  "statisticsMonthsShort": "{count}M",
+  "@statisticsPeriodCount": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@statisticsMonthsShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activityCoffee": "Coffee",
+  "activityShopping": "Shopping",
+  "activityReading": "Reading",
+  "activitySport": "Sport",
+  "activityGaming": "Gaming",
+  "activityMeditation": "Meditation",
+  "activityRestaurant": "Restaurant",
+  "activityCinema": "TV / Cinema",
+  "activityWalking": "Walking",
+  "activitySocial": "Social",
+  "categoryConsumption": "Consumption",
+  "categoryExperiences": "Experiences",
+  "categoryHobbies": "Hobbies",
+  "categoryWellness": "Wellness",
+  "categorySocial": "Social",
+  "categoryFitness": "Fitness",
+  "weekdayMonday": "Monday",
+  "weekdayTuesday": "Tuesday",
+  "weekdayWednesday": "Wednesday",
+  "weekdayThursday": "Thursday",
+  "weekdayFriday": "Friday",
+  "weekdaySaturday": "Saturday",
+  "weekdaySunday": "Sunday",
+  "highlightStartTitle": "Your story starts here",
+  "highlightStartMessage": "Record your first moment to start discovering your patterns.",
+  "highlightTopTitle": "Your top activity",
+  "highlightTopMessage": "{activity} leads your recorded moments this month, with {count} {count, plural, one{record} other{records}}.",
+  "@highlightTopMessage": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightTieTitle": "A shared first place",
+  "highlightTieMessage": "{activities} are tied this month, with {count} {count, plural, one{record} other{records}} each.",
+  "@highlightTieMessage": {
+    "placeholders": {
+      "activities": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightMultipleTieMessage": "{activitiesCount} activities share first place this month, with {count} records each.",
+  "@highlightMultipleTieMessage": {
+    "placeholders": {
+      "activitiesCount": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightVarietyTitle": "A little variety",
+  "highlightVarietyMessage": "You've recorded {activitiesCount} different activities this month, across {momentsCount} moments.",
+  "@highlightVarietyMessage": {
+    "placeholders": {
+      "activitiesCount": {
+        "type": "int"
+      },
+      "momentsCount": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightWeekdayTitle": "Your most recorded day",
+  "highlightWeekdayMessage": "{day} leads your recorded moments so far, with {count} {count, plural, one{record} other{records}}.",
+  "@highlightWeekdayMessage": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightMoreTitle": "More moments recorded",
+  "highlightMoreMessage": "You've logged {currentCount} moments in the last 7 days, compared with {previousCount} in the 7 days before that.",
+  "@highlightMoreMessage": {
+    "placeholders": {
+      "currentCount": {
+        "type": "int"
+      },
+      "previousCount": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightRecentTitle": "Your recent activity",
+  "highlightRecentMessage": "You've logged {currentCount} moments in the last 7 days, compared with {previousCount} in the previous 7 days.",
+  "@highlightRecentMessage": {
+    "placeholders": {
+      "currentCount": {
+        "type": "int"
+      },
+      "previousCount": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightMilestoneTitle": "A personal milestone",
+  "highlightMilestoneMessage": "You've passed {count} recorded moments. Your personal history is growing, one moment at a time.",
+  "@highlightMilestoneMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightGrowingTitle": "Your story is growing",
+  "highlightGrowingMessage": "You've recorded {count} {count, plural, one{moment} other{moments}} so far. Keep building your personal timeline.",
+  "@highlightGrowingMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardHighlightsLifeLabel": "YOUR LIFE IN NUMBERS",
+  "dashboardHighlightsFactLabel": "DID YOU KNOW? · {activity}",
+  "@dashboardHighlightsFactLabel": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardHighlightSource": "Source: {source}",
+  "@dashboardHighlightSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "factWalking01Title": "Every step counts",
+  "factWalking01Message": "You don't need a perfect workout to benefit from movement. The World Health Organization emphasizes that some physical activity is better than none, and walking is one way to be active.",
+  "factWalking02Title": "Small beginnings matter",
+  "factWalking02Message": "People who are inactive can begin with small amounts of physical activity and gradually increase their time and intensity. Consistency can start with something simple.",
+  "factSocial01Title": "Connection matters",
+  "factSocial01Message": "Supportive social relationships are associated with better physical and mental health. Feeling connected is an important part of wellbeing.",
+  "factSocial02Title": "Little connections count",
+  "factSocial02Message": "Meaningful social connections do not always require big plans. Small gestures, such as checking in with someone, can help strengthen relationships.",
+  "manageTitle": "Manage activities",
+  "manageNewActivity": "New activity",
+  "manageEditActivity": "Edit activity",
+  "manageActivityName": "Activity name",
+  "manageCategory": "Category",
+  "manageCancel": "Cancel",
+  "manageSave": "Save",
+  "manageDescription": "Choose what you want to track. Disabled activities keep their history.",
+  "manageLoadError": "Unable to load activities.",
+  "manageCreated": "Activity created.",
+  "manageUpdated": "Activity updated.",
+  "manageSaveError": "Unable to save activity.",
+  "navHome": "Home",
+  "navAdd": "Add",
+  "navMood": "Mood",
+  "navStatistics": "Statistics"
+}

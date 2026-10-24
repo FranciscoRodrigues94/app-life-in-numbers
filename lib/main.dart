@@ -1,23 +1,29 @@
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'controllers/life_controller.dart';
 import 'controllers/mood_controller.dart';
+import 'controllers/language_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'models/life_activity.dart';
+import 'models/life_category.dart';
+import 'models/default_emotions.dart';
 import 'pages/activity_management_page.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/quick_add_page.dart';
 import 'pages/mood_page.dart';
 import 'pages/statistics_page.dart';
 import 'services/activity_repository.dart';
-import 'models/life_category.dart';
-import 'models/default_emotions.dart';
 import 'services/category_repository.dart';
+import 'features/onboarding/pages/welcome_page.dart';
+import 'features/settings/pages/settings_page.dart';
+import 'l10n/app_localizations.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LanguageController.instance.load();
   runApp(const LifeInNumbersApp());
 }
 
@@ -26,12 +32,88 @@ class LifeInNumbersApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Life in Numbers',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const MainPage(),
+    return ListenableBuilder(
+      listenable: LanguageController.instance,
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'Life in Numbers',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          locale: LanguageController.instance.locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AppEntryPage(),
+        );
+      },
     );
+  }
+}
+
+class AppEntryPage extends StatefulWidget {
+  const AppEntryPage({super.key});
+
+  @override
+  State<AppEntryPage> createState() => _AppEntryPageState();
+}
+
+class _AppEntryPageState extends State<AppEntryPage> {
+  final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
+  bool _isLoading = true;
+  bool _showWelcome = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkWelcome();
+  }
+
+  Future<void> _checkWelcome() async {
+    try {
+      final completed = await _preferences.getBool('life_welcome_completed') ?? false;
+      final savedName = await _preferences.getString('life_user_name') ?? '';
+      if (!mounted) return;
+      setState(() {
+        _showWelcome = !completed && savedName.trim().isEmpty;
+        _isLoading = false;
+        _hasError = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (_hasError) {
+      return Scaffold(
+        body: Center(
+          child: FilledButton(
+            onPressed: () {
+              setState(() {
+                _isLoading = true;
+                _hasError = false;
+              });
+              _checkWelcome();
+            },
+            child: const Text('Retry'),
+          ),
+        ),
+      );
+    }
+    if (_showWelcome) {
+      return WelcomePage(
+        onCompleted: () => setState(() => _showWelcome = false),
+      );
+    }
+    return const MainPage();
   }
 }
 
@@ -46,16 +128,17 @@ class _MainPageState extends State<MainPage> {
   final LifeController _lifeController = LifeController();
   final MoodController _moodController = MoodController();
   final ActivityRepository _activityRepository = ActivityRepository();
+  final CategoryRepository _categoryRepository = CategoryRepository();
+  final SharedPreferencesAsync _profilePreferences = SharedPreferencesAsync();
+  static const String _userNameKey = 'life_user_name';
+
   List<LifeActivity> _activities = [];
+  List<LifeCategory> _categories = [];
   int _selectedIndex = 0;
   bool _isLoading = true;
   String? _loadError;
   String? _lastSaveError;
-  final CategoryRepository _categoryRepository = CategoryRepository();
-  List<LifeCategory> _categories = [];
   String _userName = '';
-  final SharedPreferencesAsync _profilePreferences = SharedPreferencesAsync();
-  static const String _userNameKey = 'life_user_name';
   OverlayEntry? _recordNotice;
   Timer? _recordNoticeTimer;
 
@@ -73,7 +156,6 @@ class _MainPageState extends State<MainPage> {
 
   void _onLifeChanged() {
     if (!mounted) return;
-
     setState(() {});
 
     final saveError = _lifeController.saveError;
@@ -81,13 +163,11 @@ class _MainPageState extends State<MainPage> {
       _lastSaveError = null;
       return;
     }
-
     if (saveError == _lastSaveError) return;
     _lastSaveError = saveError;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-
       final messenger = ScaffoldMessenger.maybeOf(context);
       if (messenger == null) return;
 
@@ -157,6 +237,7 @@ class _MainPageState extends State<MainPage> {
     _hideRecordNotice();
     final topPadding = MediaQuery.viewPaddingOf(context).top + 12;
     final overlay = Overlay.of(context);
+
     _recordNotice = OverlayEntry(
       builder: (overlayContext) => Positioned(
         top: topPadding,
@@ -168,7 +249,10 @@ class _MainPageState extends State<MainPage> {
           curve: Curves.easeOutCubic,
           builder: (context, progress, child) => Transform.translate(
             offset: Offset(0, progress * 64),
-            child: Opacity(opacity: (1 + progress).clamp(0.0, 1.0), child: child),
+            child: Opacity(
+              opacity: (1 + progress).clamp(0.0, 1.0),
+              child: child,
+            ),
           ),
           child: Center(
             child: ConstrainedBox(
@@ -199,12 +283,19 @@ class _MainPageState extends State<MainPage> {
                           _hideRecordNotice();
                           onUndo();
                         },
-                        child: const Text('Undo', style: TextStyle(color: AppColors.sage)),
+                        child: const Text(
+                          'Undo',
+                          style: TextStyle(color: AppColors.sage),
+                        ),
                       ),
                       IconButton(
                         onPressed: _hideRecordNotice,
                         tooltip: 'Dismiss notification',
-                        icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white70),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -215,8 +306,12 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
     );
+
     overlay.insert(_recordNotice!);
-    _recordNoticeTimer = Timer(const Duration(seconds: 3), _hideRecordNotice);
+    _recordNoticeTimer = Timer(
+      const Duration(seconds: 3),
+      _hideRecordNotice,
+    );
   }
 
   void _addFeeling(String emotionId) {
@@ -226,9 +321,30 @@ class _MainPageState extends State<MainPage> {
         .where((emotion) => emotion.id == emotionId)
         .map((emotion) => emotion.name)
         .firstOrNull ?? emotionId;
+
     _showRecordNotice('$name recorded', () {
       _moodController.removeFeeling(entry.id);
     });
+  }
+
+  Future<void> _previewWelcome() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WelcomePage(
+          onCompleted: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSettings() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SettingsPage(),
+      ),
+    );
   }
 
   Future<void> _editUserName() async {
@@ -243,15 +359,30 @@ class _MainPageState extends State<MainPage> {
             autofocus: true,
             maxLength: 40,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(hintText: 'Your first name'),
-            onSubmitted: (value) => Navigator.pop(dialogContext, value.trim()),
+            decoration: const InputDecoration(
+              hintText: 'Your first name',
+            ),
+            onSubmitted: (value) => Navigator.pop(
+              dialogContext,
+              value.trim(),
+            ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(dialogContext, textController.text.trim()), child: const Text('Save')),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                dialogContext,
+                textController.text.trim(),
+              ),
+              child: const Text('Save'),
+            ),
           ],
         ),
       );
+
       if (newName == null || !mounted) return;
       await _profilePreferences.setString(_userNameKey, newName);
       if (mounted) setState(() => _userName = newName);
@@ -269,10 +400,10 @@ class _MainPageState extends State<MainPage> {
   void _addRecord(String activityId) {
     final event = _lifeController.addEvent(activityId);
     final activityName = _activities
-            .where((activity) => activity.id == activityId)
-            .map((activity) => activity.name)
-            .firstOrNull ??
-        activityId;
+        .where((activity) => activity.id == activityId)
+        .map((activity) => activity.name)
+        .firstOrNull ?? activityId;
+
     _showRecordNotice('$activityName added', () {
       _lifeController.removeEvent(event.id);
     });
@@ -287,18 +418,15 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<void> _openRecordHistory(String activityId) async {
-    final activityName =
-        _activities
-            .where((activity) => activity.id == activityId)
-            .map((activity) => activity.name)
-            .firstOrNull ??
-        activityId;
+    final activityName = _activities
+        .where((activity) => activity.id == activityId)
+        .map((activity) => activity.name)
+        .firstOrNull ?? activityId;
 
-    final activityEvents =
-        _lifeController.events
-            .where((event) => event.activityId == activityId)
-            .toList()
-          ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+    final activityEvents = _lifeController.events
+        .where((event) => event.activityId == activityId)
+        .toList()
+      ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
 
     if (activityEvents.isEmpty) return;
 
@@ -383,14 +511,18 @@ class _MainPageState extends State<MainPage> {
                                   ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(dialogContext, false),
+                                      onPressed: () => Navigator.pop(
+                                        dialogContext,
+                                        false,
+                                      ),
                                       child: const Text('Cancel'),
                                     ),
                                     TextButton(
                                       key: const Key('confirm_delete_record'),
-                                      onPressed: () =>
-                                          Navigator.pop(dialogContext, true),
+                                      onPressed: () => Navigator.pop(
+                                        dialogContext,
+                                        true,
+                                      ),
                                       style: TextButton.styleFrom(
                                         foregroundColor: Colors.redAccent,
                                       ),
@@ -409,16 +541,12 @@ class _MainPageState extends State<MainPage> {
                               final removed = _lifeController.removeEvent(
                                 event.id,
                               );
-                              if (!removed) {
-                                return;
-                              }
+                              if (!removed) return;
 
                               if (sheetContext.mounted) {
                                 Navigator.pop(sheetContext);
                               }
-                              if (!mounted) {
-                                return;
-                              }
+                              if (!mounted) return;
 
                               final messenger = ScaffoldMessenger.of(context);
                               messenger.removeCurrentSnackBar();
@@ -456,8 +584,9 @@ class _MainPageState extends State<MainPage> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ActivityManagementPage(repository: _activityRepository),
+        builder: (context) => ActivityManagementPage(
+          repository: _activityRepository,
+        ),
       ),
     );
 
@@ -466,7 +595,7 @@ class _MainPageState extends State<MainPage> {
       final activities = await _activityRepository.loadActivities();
       if (!mounted) return;
       setState(() => _activities = activities);
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to refresh activities.')),
@@ -487,7 +616,9 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (_loadError != null) {
@@ -516,20 +647,49 @@ class _MainPageState extends State<MainPage> {
 
     final records = _lifeController.records;
     final events = _lifeController.events;
+    final l10n = AppLocalizations.of(context)!;
 
     final pages = [
-      DashboardPage(
-        records: records,
-        activities: _activities,
-        events: events,
-        feelings: _moodController.entries,
-        onShowMood: () => setState(() => _selectedIndex = 2),
-        onAddFeeling: _addFeeling,
-        userName: _userName,
-        onEditName: _editUserName,
-        onAdd: _addRecord,
-        onRemove: _openRecordHistory,
-        onShowAll: () => setState(() => _selectedIndex = 1),
+      Stack(
+        children: [
+          DashboardPage(
+            records: records,
+            activities: _activities,
+            events: events,
+            feelings: _moodController.entries,
+            onShowMood: () => setState(() => _selectedIndex = 2),
+            onAddFeeling: _addFeeling,
+            userName: _userName,
+            onEditName: _editUserName,
+            onAdd: _addRecord,
+            onRemove: _openRecordHistory,
+            onShowAll: () => setState(() => _selectedIndex = 1),
+          ),
+          Positioned(
+            right: 16,
+            bottom: 80,
+            child: FloatingActionButton.small(
+              heroTag: 'open_settings',
+              tooltip: 'Settings',
+              backgroundColor: AppColors.navy,
+              foregroundColor: Colors.white,
+              onPressed: _openSettings,
+              child: const Icon(Icons.settings_outlined),
+            ),
+          ),
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: FloatingActionButton.small(
+              heroTag: 'preview_welcome',
+              tooltip: 'Preview Welcome',
+              backgroundColor: AppColors.navy,
+              foregroundColor: Colors.white,
+              onPressed: _previewWelcome,
+              child: const Icon(Icons.visibility_outlined),
+            ),
+          ),
+        ],
       ),
       QuickAddPage(
         activities: _activities,
@@ -539,7 +699,10 @@ class _MainPageState extends State<MainPage> {
         onRemove: _openRecordHistory,
         onManage: _openActivityManagement,
       ),
-      MoodPage(controller: _moodController, onShowNotice: _showRecordNotice),
+      MoodPage(
+        controller: _moodController,
+        onShowNotice: _showRecordNotice,
+      ),
       StatisticsPage(
         events: events,
         activities: _activities,
@@ -549,7 +712,10 @@ class _MainPageState extends State<MainPage> {
 
     return Scaffold(
       body: SafeArea(
-        child: IndexedStack(index: _selectedIndex, children: pages),
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: pages,
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         key: const Key('main_navigation'),
@@ -557,30 +723,30 @@ class _MainPageState extends State<MainPage> {
         onDestinationSelected: (index) {
           setState(() => _selectedIndex = index);
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
             key: Key('nav_home'),
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            label: l10n.navHome,
           ),
           NavigationDestination(
             key: Key('nav_add'),
             icon: Icon(Icons.add_circle_outline),
             selectedIcon: Icon(Icons.add_circle),
-            label: 'Add',
+            label: l10n.navAdd,
           ),
           NavigationDestination(
             key: Key('nav_mood'),
             icon: Icon(Icons.favorite_border_rounded),
             selectedIcon: Icon(Icons.favorite_rounded),
-            label: 'Mood',
+            label: l10n.navMood,
           ),
           NavigationDestination(
             key: Key('nav_statistics'),
             icon: Icon(Icons.bar_chart_outlined),
             selectedIcon: Icon(Icons.bar_chart),
-            label: 'Statistics',
+            label: l10n.navStatistics,
           ),
         ],
       ),

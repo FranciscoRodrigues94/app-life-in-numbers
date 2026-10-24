@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:life_in_numbers/l10n/app_localizations.dart';
 import '../core/theme/app_theme.dart';
 import '../models/life_activity.dart';
 import '../models/life_event.dart';
@@ -7,6 +7,8 @@ import '../models/life_mood_entry.dart';
 import '../models/default_emotions.dart';
 import '../services/did_you_know_service.dart';
 import '../services/highlights_service.dart';
+import '../services/display_name_service.dart';
+
 
 class DashboardPage extends StatefulWidget {
   final Map<String, int> records;
@@ -99,37 +101,35 @@ class _DashboardPageState extends State<DashboardPage> {
     AppColors.sand,
   ];
 
-  String _greeting(int hour) {
-    final period = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    return widget.userName.trim().isEmpty ? '$period.' : '$period, ${widget.userName.trim()}.';
+  String _greeting(BuildContext context, int hour) {
+    final l10n = AppLocalizations.of(context)!;
+    final period = hour < 12 ? l10n.dashboardGoodMorning : hour < 18 ? l10n.dashboardGoodAfternoon : l10n.dashboardGoodEvening;
+    final name = widget.userName.trim();
+    return name.isEmpty ? '$period.' : '$period, $name.';
   }
 
-  String _monthName(int month) {
-    const names = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return names[month - 1];
+  String _emotionName(AppLocalizations l10n, String id, String fallback) {
+    switch (id) {
+      case 'joy': return l10n.dashboardEmotionJoy;
+      case 'happiness': return l10n.dashboardEmotionHappiness;
+      case 'sadness': return l10n.dashboardEmotionSadness;
+      case 'anger': return l10n.dashboardEmotionAnger;
+      case 'fear': return l10n.dashboardEmotionFear;
+      case 'disgust': return l10n.dashboardEmotionDisgust;
+      case 'surprise': return l10n.dashboardEmotionSurprise;
+      default: return fallback;
+    }
   }
 
-  List<_HighlightDisplay> _buildHighlights(DateTime now) {
+  List<_HighlightDisplay> _buildHighlights(DateTime now, AppLocalizations l10n) {
     final statistics = HighlightsService().getHighlights(
       widget.events,
       widget.activities,
+      l10n: l10n,
       now: now,
     );
 
-    final facts = const DidYouKnowService().factsForEvents(widget.events);
+    final facts = const DidYouKnowService().factsForEvents(widget.events, l10n: l10n);
     final results = <_HighlightDisplay>[];
     final maximum = statistics.length > facts.length
         ? statistics.length
@@ -142,7 +142,7 @@ class _DashboardPageState extends State<DashboardPage> {
           _HighlightDisplay(
             title: highlight.title,
             message: highlight.message,
-            label: 'YOUR LIFE IN NUMBERS',
+            label: l10n.dashboardLifeInNumbersLabel,
           ),
         );
       }
@@ -152,7 +152,7 @@ class _DashboardPageState extends State<DashboardPage> {
         final activityName =
             widget.activities
                 .where((activity) => activity.id == fact.activityId)
-                .map((activity) => activity.name)
+                .map((activity) => DisplayNameService.activity(activity, l10n))
                 .firstOrNull ??
             fact.activityId;
 
@@ -160,7 +160,7 @@ class _DashboardPageState extends State<DashboardPage> {
           _HighlightDisplay(
             title: fact.title,
             message: fact.message,
-            label: 'DID YOU KNOW? · ${activityName.toUpperCase()}',
+            label: l10n.dashboardDidYouKnow(activityName.toUpperCase()),
             source: fact.sourceName,
             isFact: true,
           ),
@@ -181,6 +181,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final l10n = AppLocalizations.of(context)!;
     final monthRecords = widget.events.where((event) {
       return event.occurredAt.year == now.year &&
           event.occurredAt.month == now.month;
@@ -213,7 +214,7 @@ class _DashboardPageState extends State<DashboardPage> {
         .toList()
       ..sort((a, b) => (widget.records[b.id] ?? 0).compareTo(widget.records[a.id] ?? 0));
 
-    final highlights = _buildHighlights(now);
+    final highlights = _buildHighlights(now, l10n);
     final currentIndex = highlights.isEmpty
         ? 0
         : _highlightIndex % highlights.length;
@@ -246,7 +247,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         Flexible(
                           child: Text(
-                            _greeting(now.hour),
+                            _greeting(context, now.hour),
                             key: const Key('dashboard_greeting'),
                             style: AppTypography.hero.copyWith(fontSize: 36),
                           ),
@@ -258,7 +259,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your moments. Your feelings. Your story.',
+                    l10n.dashboardSubtitle,
                     style: AppTypography.body.copyWith(
                       color: AppColors.mutedText,
                     ),
@@ -289,7 +290,7 @@ class _DashboardPageState extends State<DashboardPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${_monthName(now.month).toUpperCase()} ${now.year}',
+                MaterialLocalizations.of(context).formatMonthYear(now).toUpperCase(),
                 style: AppTypography.caption.copyWith(
                   color: const Color(0xFFB6CBDB),
                   letterSpacing: 1.8,
@@ -307,7 +308,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                monthRecords == 1 ? 'moment recorded' : 'moments recorded',
+                l10n.dashboardMomentsRecorded(monthRecords),
                 style: AppTypography.body.copyWith(
                   color: Colors.white,
                   fontSize: 16,
@@ -320,10 +321,10 @@ class _DashboardPageState extends State<DashboardPage> {
               Row(
                 children: [
                   Expanded(
-                    child: _heroMetric('$trackedActivities', 'Activities tracked'),
+                    child: _heroMetric('$trackedActivities', l10n.dashboardActivitiesTracked),
                   ),
                   Expanded(
-                    child: _heroMetric('$totalRecords', 'All-time moments'),
+                    child: _heroMetric('$totalRecords', l10n.dashboardAllTimeMoments),
                   ),
                 ],
               ),
@@ -332,8 +333,8 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(height: 18),
               Row(
                 children: [
-                  Expanded(child: _heroMetric('$monthFeelings', 'Feelings this month')),
-                  Expanded(child: _heroMetric('${widget.feelings.length}', 'All-time feelings')),
+                  Expanded(child: _heroMetric('$monthFeelings', l10n.dashboardFeelingsThisMonth)),
+                  Expanded(child: _heroMetric('${widget.feelings.length}', l10n.dashboardAllTimeFeelings)),
                 ],
               ),
             ],
@@ -343,16 +344,16 @@ class _DashboardPageState extends State<DashboardPage> {
         Row(
           children: [
             Expanded(
-              child: Text('YOUR ACTIVITIES', style: AppTypography.section),
+              child: Text(l10n.dashboardYourActivities, style: AppTypography.section),
             ),
             TextButton(
               onPressed: widget.onShowAll,
-              child: const Text('See all'),
+              child: Text(l10n.dashboardSeeAll),
             ),
           ],
         ),
         const SizedBox(height: 6),
-        Text('One tap. One more moment.', style: AppTypography.caption),
+        Text(l10n.dashboardActivitiesSubtitle, style: AppTypography.caption),
         const SizedBox(height: 16),
         if (recordedActivities.isEmpty)
           _emptyActivities()
@@ -383,12 +384,12 @@ class _DashboardPageState extends State<DashboardPage> {
         const SizedBox(height: 32),
         Row(
           children: [
-            Expanded(child: Text('YOUR FEELINGS', style: AppTypography.section)),
-            TextButton(onPressed: widget.onShowMood, child: const Text('See all')),
+            Expanded(child: Text(l10n.dashboardYourFeelings, style: AppTypography.section)),
+            TextButton(onPressed: widget.onShowMood, child: Text(l10n.dashboardSeeAll)),
           ],
         ),
         const SizedBox(height: 6),
-        Text('A little check-in with yourself.', style: AppTypography.caption),
+        Text(l10n.dashboardFeelingsSubtitle, style: AppTypography.caption),
         const SizedBox(height: 16),
         if (recordedEmotions.isEmpty)
           Container(
@@ -404,7 +405,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'No feelings recorded yet. Tap See all to log your first feeling.',
+                    l10n.dashboardNoFeelings,
                     style: AppTypography.body,
                   ),
                 ),
@@ -435,7 +436,7 @@ class _DashboardPageState extends State<DashboardPage> {
             },
           ),
         const SizedBox(height: 32),
-        Text('HIGHLIGHTS', style: AppTypography.section),
+        Text(l10n.dashboardHighlights, style: AppTypography.section),
         const SizedBox(height: 14),
         if (currentHighlight != null)
         Container(
@@ -500,7 +501,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         if (currentHighlight.source != null) ...[
                           const SizedBox(height: 12),
                           Text(
-                            'Source: ${currentHighlight.source}',
+                            l10n.dashboardSource(currentHighlight.source!),
                             style: AppTypography.caption.copyWith(
                               color: AppColors.mutedText,
                             ),
@@ -523,7 +524,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   children: [
                     IconButton(
                       key: const Key('highlight_previous'),
-                      tooltip: 'Previous highlight',
+                      tooltip: l10n.dashboardPreviousHighlight,
                       onPressed: () => _changeHighlight(-1, highlights.length),
                       icon: const Icon(Icons.chevron_left_rounded),
                       color: AppColors.navy,
@@ -537,7 +538,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     IconButton(
                       key: const Key('highlight_next'),
-                      tooltip: 'Next highlight',
+                      tooltip: l10n.dashboardNextHighlight,
                       onPressed: () => _changeHighlight(1, highlights.length),
                       icon: const Icon(Icons.chevron_right_rounded),
                       color: AppColors.navy,
@@ -570,6 +571,8 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _activityTile(LifeActivity activity, Color background) {
+    final l10n = AppLocalizations.of(context)!;
+    final displayName = DisplayNameService.activity(activity, l10n);
     final icon = _icons[activity.iconName] ?? Icons.category_rounded;
     final count = widget.records[activity.id] ?? 0;
 
@@ -590,7 +593,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Icon(icon, color: AppColors.navy, size: 29),
                 const Spacer(),
                 Text(
-                  activity.name,
+                  displayName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.body.copyWith(
@@ -603,7 +606,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   children: [
                     Expanded(
                       child: Text(
-                        '$count recorded',
+                        l10n.dashboardRecorded(count),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.caption.copyWith(
@@ -613,7 +616,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     IconButton(
                       key: Key('remove_activity_${activity.id}'),
-                      tooltip: 'Manage recorded moments',
+                      tooltip: AppLocalizations.of(context)!.dashboardManageMoments,
                       onPressed: () => widget.onRemove(activity.id),
                       icon: const Icon(Icons.remove_rounded),
                       iconSize: 18,
@@ -638,6 +641,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _feelingTile(LifeEmotion emotion, int count) {
+    final l10n = AppLocalizations.of(context)!;
     return Material(
       color: _emotionColors[emotion.id] ?? AppColors.sage,
       borderRadius: BorderRadius.circular(20),
@@ -659,7 +663,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
                 const Spacer(),
                 Text(
-                  emotion.name,
+                  _emotionName(l10n, emotion.id, emotion.name),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.body.copyWith(
@@ -670,7 +674,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$count recorded',
+                  l10n.dashboardRecorded(count),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.navy.withValues(alpha: 0.7),
                   ),
@@ -691,7 +695,7 @@ class _DashboardPageState extends State<DashboardPage> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        'No moments recorded yet. Tap See all to record your first activity.',
+        AppLocalizations.of(context)!.dashboardNoActivities,
         style: AppTypography.body,
       ),
     );

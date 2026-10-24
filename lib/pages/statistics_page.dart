@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:life_in_numbers/l10n/app_localizations.dart';
 import '../core/theme/app_theme.dart';
 import '../models/default_emotions.dart';
 import '../models/life_activity.dart';
@@ -7,6 +9,7 @@ import '../models/life_event.dart';
 import '../models/life_mood_entry.dart';
 import '../services/statistics_service.dart';
 import '../services/statistics_insights_service.dart';
+import '../services/display_name_service.dart';
 
 class StatisticsPage extends StatefulWidget {
   final List<LifeEvent> events;
@@ -68,23 +71,36 @@ class _StatisticsPageState extends State<StatisticsPage> {
     super.dispose();
   }
 
+  String _translatedEmotion(AppLocalizations l10n, String id, String fallback) {
+    switch (id) {
+      case 'joy': return l10n.dashboardEmotionJoy;
+      case 'happiness': return l10n.dashboardEmotionHappiness;
+      case 'sadness': return l10n.dashboardEmotionSadness;
+      case 'anger': return l10n.dashboardEmotionAnger;
+      case 'fear': return l10n.dashboardEmotionFear;
+      case 'disgust': return l10n.dashboardEmotionDisgust;
+      case 'surprise': return l10n.dashboardEmotionSurprise;
+      default: return fallback;
+    }
+  }
+
   String _activityName(String id) {
+    final l10n = AppLocalizations.of(context)!;
     for (final activity in widget.activities) {
-      if (activity.id == id) return activity.name;
+      if (activity.id == id) return DisplayNameService.activity(activity, l10n);
     }
     return id;
   }
 
-  String _monthLabel(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${months[date.month - 1]} ${date.year.toString().substring(2)}';
-  }
+  String _monthLabel(DateTime date, String locale) => DateFormat('MMM yy', locale).format(date);
 
   Color _activityColor(String id, List<String> ids) => _activityColors[ids.indexOf(id) % _activityColors.length];
   Color _emotionColor(String id) => _feelingColors[id] ?? AppColors.accent;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     const statistics = StatisticsService();
     final now = DateTime.now();
     final total = statistics.totalEvents(widget.events);
@@ -115,7 +131,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       ...widget.feelings.map((entry) => entry.primaryEmotionId),
     }.toList();
     final emotionNames = {
-      for (final emotion in DefaultEmotions.primary) emotion.id: emotion.name,
+      for (final emotion in DefaultEmotions.primary) emotion.id: _translatedEmotion(l10n, emotion.id, emotion.name),
       for (final id in emotionIds)
         if (!DefaultEmotions.primary.any((emotion) => emotion.id == id)) id: id,
     };
@@ -160,7 +176,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           }
         }
       }
-      return (labels: starts.map(_monthLabel).toList(), groups: groups);
+      return (labels: starts.map((date) => _monthLabel(date, locale)).toList(), groups: groups);
     }
 
     final momentMonthly = monthlyGroups(_momentMonths, false);
@@ -179,39 +195,39 @@ class _StatisticsPageState extends State<StatisticsPage> {
           color: AppColors.accent, letterSpacing: 2.5, fontWeight: FontWeight.w800,
         )),
         const SizedBox(height: 12),
-        Text('STATISTICS', style: AppTypography.section.copyWith(fontSize: 39, height: 1.05)),
+        Text(l10n.statisticsTitle, style: AppTypography.section.copyWith(fontSize: 39, height: 1.05)),
         const SizedBox(height: 8),
-        Text('Your life, seen through numbers.', style: AppTypography.body.copyWith(color: AppColors.mutedText)),
+        Text(l10n.statisticsSubtitle, style: AppTypography.body.copyWith(color: AppColors.mutedText)),
         const SizedBox(height: 30),
-        Text('Your life at a glance', style: AppTypography.hero.copyWith(fontSize: 27)),
+        Text(l10n.statisticsOverview, style: AppTypography.hero.copyWith(fontSize: 27)),
         const SizedBox(height: 16),
         LayoutBuilder(builder: (context, constraints) {
           const spacing = 12.0;
           final columns = constraints.maxWidth >= 650 ? 4 : 2;
           final width = (constraints.maxWidth - spacing * (columns - 1)) / columns;
           return Wrap(spacing: spacing, runSpacing: spacing, children: [
-            SizedBox(width: width, child: _metricCard(key: const Key('statistics_total_card'), label: 'ALL-TIME',
-              value: '$total', description: 'Total moments', icon: Icons.auto_awesome_rounded, background: AppColors.navy, dark: true)),
-            SizedBox(width: width, child: _metricCard(key: const Key('statistics_month_card'), label: 'THIS MONTH',
-              value: '$thisMonth', description: 'Moments recorded', icon: Icons.calendar_today_outlined, background: AppColors.sky)),
-            SizedBox(width: width, child: _metricCard(key: const Key('statistics_last7_card'), label: 'LAST 7 DAYS',
-              value: '$last7', description: 'Moments recorded', icon: Icons.date_range_rounded, background: AppColors.peach)),
-            SizedBox(width: width, child: _metricCard(key: const Key('statistics_today_card'), label: 'TODAY',
-              value: '$today', description: 'Moments today', icon: Icons.wb_sunny_outlined, background: AppColors.sage)),
+            SizedBox(width: width, child: _metricCard(key: const Key('statistics_total_card'), label: l10n.statisticsAllTime,
+              value: '$total', description: l10n.statisticsTotalMoments, icon: Icons.auto_awesome_rounded, background: AppColors.navy, dark: true)),
+            SizedBox(width: width, child: _metricCard(key: const Key('statistics_month_card'), label: l10n.statisticsThisMonth,
+              value: '$thisMonth', description: l10n.statisticsMomentsRecorded, icon: Icons.calendar_today_outlined, background: AppColors.sky)),
+            SizedBox(width: width, child: _metricCard(key: const Key('statistics_last7_card'), label: l10n.statisticsLast7,
+              value: '$last7', description: l10n.statisticsMomentsRecorded, icon: Icons.date_range_rounded, background: AppColors.peach)),
+            SizedBox(width: width, child: _metricCard(key: const Key('statistics_today_card'), label: l10n.statisticsToday,
+              value: '$today', description: l10n.statisticsMomentsToday, icon: Icons.wb_sunny_outlined, background: AppColors.sage)),
           ]);
         }),
         const SizedBox(height: 34),
-        Text('MOMENTS', style: AppTypography.section.copyWith(fontSize: 25)),
+        Text(l10n.statisticsMoments, style: AppTypography.section.copyWith(fontSize: 25)),
         const SizedBox(height: 8),
-        Text('Swipe to explore your activity patterns.', style: AppTypography.caption),
+        Text(l10n.statisticsMomentsHint, style: AppTypography.caption),
         const SizedBox(height: 16),
         _chartCarousel(storageId: 'moments_carousel', controller: _momentsController, selectedPage: _momentsPage,
-          labels: const ['Breakdown', 'Weekdays', 'Over time'],
+          labels: [l10n.statisticsBreakdown, l10n.statisticsWeekdays, l10n.statisticsOverTime],
           onPageChanged: (index) => setState(() => _momentsPage = index),
           children: [
             Container(key: const Key('statistics_breakdown'), padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(24)),
-              child: sortedActivities.isEmpty ? _emptyText('No moments recorded yet.') : Column(children: [
+              child: sortedActivities.isEmpty ? _emptyText(l10n.statisticsEmptyMoments) : Column(children: [
                 for (var i = 0; i < sortedActivities.length; i++) ...[
                   _progressRow(label: _activityName(sortedActivities[i].key), count: sortedActivities[i].value,
                     total: total, color: _activityColor(sortedActivities[i].key, activityIds)),
@@ -219,12 +235,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 ],
               ])),
             _verticalCompositionCard(key: const Key('statistics_weekday_breakdown'),
-              labels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], groups: momentWeekdays,
+              labels: [l10n.statisticsMon, l10n.statisticsTue, l10n.statisticsWed, l10n.statisticsThu, l10n.statisticsFri, l10n.statisticsSat, l10n.statisticsSun], groups: momentWeekdays,
               ids: activityIds, names: activityNames, colorFor: (id) => _activityColor(id, activityIds),
               selectedIndex: _momentWeekdaySelection,
               selectedIds: _momentChartFilters, onSelectionChanged: (ids) => setState(() => _momentChartFilters = ids),
               onSelected: (index) => setState(() => _momentWeekdaySelection = index),
-              emptyMessage: 'Log moments to discover your weekday activity mix.'),
+              emptyMessage: l10n.statisticsEmptyMomentWeekdays),
             _monthlyPanel(key: const Key('statistics_moments_monthly'), count: _momentMonths,
               onCountChanged: (count) => setState(() { _momentMonths = count; _momentMonthSelection = count - 1; }),
               chart: _verticalCompositionCard(labels: momentMonthly.labels, groups: momentMonthly.groups,
@@ -232,35 +248,35 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 selectedIndex: _momentMonthSelection,
                 selectedIds: _momentChartFilters, onSelectionChanged: (ids) => setState(() => _momentChartFilters = ids),
                 onSelected: (index) => setState(() => _momentMonthSelection = index),
-                emptyMessage: 'Log moments to discover your monthly activity mix.')),
+                emptyMessage: l10n.statisticsEmptyMomentMonths)),
           ]),
         const SizedBox(height: 34),
-        Text('YOUR FEELINGS', style: AppTypography.section.copyWith(fontSize: 25)),
+        Text(l10n.dashboardYourFeelings, style: AppTypography.section.copyWith(fontSize: 25)),
         const SizedBox(height: 8),
-        Text('The emotions you have recorded, independently of moments.', style: AppTypography.caption),
+        Text(l10n.statisticsFeelingsHint, style: AppTypography.caption),
         const SizedBox(height: 18),
         LayoutBuilder(builder: (context, constraints) {
           const spacing = 12.0;
           final columns = constraints.maxWidth >= 650 ? 3 : 2;
           final width = (constraints.maxWidth - spacing * (columns - 1)) / columns;
           return Wrap(spacing: spacing, runSpacing: spacing, children: [
-            SizedBox(width: width, child: _metricCard(key: const Key('statistics_feelings_total'), label: 'ALL-TIME',
-              value: '${widget.feelings.length}', description: 'Feelings recorded',
+            SizedBox(width: width, child: _metricCard(key: const Key('statistics_feelings_total'), label: l10n.statisticsAllTime,
+              value: '${widget.feelings.length}', description: l10n.statisticsFeelingsRecorded,
               icon: Icons.favorite_rounded, background: AppColors.peach)),
-            SizedBox(width: width, child: _metricCard(key: const Key('statistics_feelings_today'), label: 'TODAY',
-              value: '$feelingsToday', description: 'Feelings today', icon: Icons.today_rounded, background: AppColors.sage)),
-            SizedBox(width: width, child: _metricCard(key: const Key('statistics_feelings_month'), label: 'THIS MONTH',
-              value: '$feelingsMonth', description: 'Feelings this month', icon: Icons.calendar_month_rounded, background: AppColors.sky)),
+            SizedBox(width: width, child: _metricCard(key: const Key('statistics_feelings_today'), label: l10n.statisticsToday,
+              value: '$feelingsToday', description: l10n.statisticsFeelingsToday, icon: Icons.today_rounded, background: AppColors.sage)),
+            SizedBox(width: width, child: _metricCard(key: const Key('statistics_feelings_month'), label: l10n.statisticsThisMonth,
+              value: '$feelingsMonth', description: l10n.statisticsFeelingsMonth, icon: Icons.calendar_month_rounded, background: AppColors.sky)),
           ]);
         }),
         const SizedBox(height: 28),
         _chartCarousel(storageId: 'feelings_carousel', controller: _feelingsController, selectedPage: _feelingsPage,
-          labels: const ['Breakdown', 'Weekdays', 'Over time'],
+          labels: [l10n.statisticsBreakdown, l10n.statisticsWeekdays, l10n.statisticsOverTime],
           onPageChanged: (index) => setState(() => _feelingsPage = index),
           children: [
             Container(key: const Key('statistics_emotion_breakdown'), padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(24)),
-              child: widget.feelings.isEmpty ? _emptyText('Record your first feeling to see your emotional patterns.')
+              child: widget.feelings.isEmpty ? _emptyText(l10n.statisticsEmptyFeelings)
                   : Column(children: [
                       for (var i = 0; i < emotionIds.length; i++) ...[
                         _progressRow(label: emotionNames[emotionIds[i]] ?? emotionIds[i],
@@ -270,12 +286,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
                       ],
                     ])),
             _verticalCompositionCard(key: const Key('statistics_feelings_weekdays'),
-              labels: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], groups: feelingWeekdays,
+              labels: [l10n.statisticsMon, l10n.statisticsTue, l10n.statisticsWed, l10n.statisticsThu, l10n.statisticsFri, l10n.statisticsSat, l10n.statisticsSun], groups: feelingWeekdays,
               ids: emotionIds, names: emotionNames, colorFor: _emotionColor,
               selectedIndex: _feelingWeekdaySelection,
               selectedIds: _feelingChartFilters, onSelectionChanged: (ids) => setState(() => _feelingChartFilters = ids),
               onSelected: (index) => setState(() => _feelingWeekdaySelection = index),
-              emptyMessage: 'Log feelings to discover your weekday emotion mix.'),
+              emptyMessage: l10n.statisticsEmptyFeelingWeekdays),
             _monthlyPanel(key: const Key('statistics_feelings_monthly'), count: _feelingMonths,
               onCountChanged: (count) => setState(() { _feelingMonths = count; _feelingMonthSelection = count - 1; }),
               chart: _verticalCompositionCard(labels: feelingMonthly.labels, groups: feelingMonthly.groups,
@@ -283,12 +299,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 selectedIndex: _feelingMonthSelection,
                 selectedIds: _feelingChartFilters, onSelectionChanged: (ids) => setState(() => _feelingChartFilters = ids),
                 onSelected: (index) => setState(() => _feelingMonthSelection = index),
-                emptyMessage: 'Log feelings to discover your monthly emotion mix.')),
+                emptyMessage: l10n.statisticsEmptyFeelingMonths)),
           ]),
         const SizedBox(height: 34),
-        Text('MOMENTS & FEELINGS', style: AppTypography.section.copyWith(fontSize: 25)),
+        Text(l10n.statisticsMomentsFeelings, style: AppTypography.section.copyWith(fontSize: 25)),
         const SizedBox(height: 8),
-        Text('Patterns found across your recorded moments and feelings.', style: AppTypography.caption),
+        Text(l10n.statisticsInsightHint, style: AppTypography.caption),
         const SizedBox(height: 14),
         if (insights.isEmpty)
           Container(
@@ -298,9 +314,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Icon(Icons.insights_rounded, color: AppColors.navy, size: 27),
               const SizedBox(height: 14),
-              Text('Your patterns are taking shape.', style: AppTypography.hero.copyWith(fontSize: 25)),
+              Text(l10n.statisticsInsufficientTitle, style: AppTypography.hero.copyWith(fontSize: 25)),
               const SizedBox(height: 8),
-              Text('Log moments and feelings on more days to reveal meaningful same-day patterns. No conclusions are generated from too little data.',
+              Text(l10n.statisticsInsufficientMessage,
                 style: AppTypography.body.copyWith(color: AppColors.mutedText, height: 1.5)),
             ]),
           )
@@ -333,14 +349,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   Widget _chartCarousel({required String storageId, required PageController controller, required int selectedPage,
     required List<String> labels, required ValueChanged<int> onPageChanged, required List<Widget> children}) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(children: [
       Row(children: [
-        IconButton(tooltip: 'Previous chart', onPressed: selectedPage == 0 ? null : () => controller.animateToPage(
+        IconButton(tooltip: l10n.statisticsPreviousChart, onPressed: selectedPage == 0 ? null : () => controller.animateToPage(
           selectedPage - 1, duration: const Duration(milliseconds: 260), curve: Curves.easeInOut),
           icon: const Icon(Icons.chevron_left_rounded)),
         Expanded(child: Text(labels[selectedPage], textAlign: TextAlign.center,
           style: AppTypography.body.copyWith(fontWeight: FontWeight.w800))),
-        IconButton(tooltip: 'Next chart', onPressed: selectedPage == children.length - 1 ? null : () => controller.animateToPage(
+        IconButton(tooltip: l10n.statisticsNextChart, onPressed: selectedPage == children.length - 1 ? null : () => controller.animateToPage(
           selectedPage + 1, duration: const Duration(milliseconds: 260), curve: Curves.easeInOut),
           icon: const Icon(Icons.chevron_right_rounded)),
       ]),
@@ -382,7 +399,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       child: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           for (final months in [3, 6, 12]) Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
-            child: ChoiceChip(label: Text('${months}M'), selected: count == months,
+            child: ChoiceChip(label: Text(AppLocalizations.of(context)!.statisticsMonthsShort(months)), selected: count == months,
               onSelected: (_) => onCountChanged(months),
               selectedColor: AppColors.sage, labelStyle: AppTypography.caption.copyWith(color: AppColors.navy))),
         ]),
@@ -404,6 +421,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     required Set<String> selectedIds,
     required ValueChanged<Set<String>> onSelectionChanged,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     final totals = groups.map((group) => group.values.fold<int>(0, (a, b) => a + b)).toList();
     if (totals.every((total) => total == 0)) {
       return Container(key: key, padding: const EdgeInsets.all(16), child: _emptyText(emptyMessage));
@@ -433,13 +451,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Choose one or more to compare. Tap a day or month for details.',
+        Text(l10n.statisticsCompareHint,
           style: AppTypography.caption.copyWith(color: AppColors.mutedText)),
         const SizedBox(height: 9),
         // Filter chips support multiple selected activities or emotions.
         SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
           Padding(padding: const EdgeInsets.only(right: 6), child: ChoiceChip(
-            label: const Text('Top 3'), selected: selectedIds.isEmpty,
+            label: Text(l10n.statisticsTop3), selected: selectedIds.isEmpty,
             onSelected: (_) => onSelectionChanged(<String>{}),
             selectedColor: AppColors.sage,
             labelStyle: AppTypography.caption.copyWith(color: AppColors.navy))),
@@ -503,11 +521,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
           ));
         }),
         const SizedBox(height: 12),
-        Text('${labels[safeIndex]} · ${totals[safeIndex]} recorded',
+        Text(l10n.statisticsPeriodCount(labels[safeIndex], totals[safeIndex]),
           style: AppTypography.body.copyWith(fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         if (totals[safeIndex] == 0)
-          Text('No records for this period.', style: AppTypography.caption)
+          Text(l10n.statisticsEmptyPeriod, style: AppTypography.caption)
         else
           Wrap(spacing: 8, runSpacing: 8, children: [
             for (final id in rankedIds)

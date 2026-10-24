@@ -1,8 +1,10 @@
 
 import 'package:flutter/material.dart';
+import 'package:life_in_numbers/l10n/app_localizations.dart';
 import '../core/theme/app_theme.dart';
 import '../models/life_activity.dart';
 import '../models/life_category.dart';
+import '../services/display_name_service.dart';
 
 class QuickAddPage extends StatefulWidget {
   final List<LifeActivity> activities;
@@ -53,6 +55,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final availableCategories = widget.categories
         .where((category) => category.isActive)
         .toList();
@@ -66,7 +69,9 @@ class _QuickAddPageState extends State<QuickAddPage> {
     final filteredActivities = widget.activities.where((activity) {
       if (!activity.isActive) return false;
 
+      final displayName = DisplayNameService.activity(activity, l10n);
       final matchesSearch =
+          displayName.toLowerCase().contains(_searchQuery) ||
           activity.name.toLowerCase().contains(_searchQuery);
       final matchesCategory = selectedCategoryId == null ||
           activity.categoryId == selectedCategoryId;
@@ -92,7 +97,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
         ),
         const SizedBox(height: 12),
         Text(
-          'ADD A MOMENT',
+          l10n.addMomentTitle,
           style: AppTypography.section.copyWith(
             fontSize: 39,
             height: 1.05,
@@ -100,7 +105,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          'What have you been up to?',
+          l10n.addMomentSubtitle,
           style: AppTypography.body.copyWith(
             color: AppColors.mutedText,
           ),
@@ -115,7 +120,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
           },
           style: AppTypography.body,
           decoration: InputDecoration(
-            hintText: 'Search your activities...',
+            hintText: l10n.addSearchHint,
             hintStyle: AppTypography.body.copyWith(
               color: AppColors.mutedText,
             ),
@@ -141,7 +146,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
           child: Row(
             children: [
               _categoryChip(
-                label: 'All',
+                label: l10n.addAllCategories,
                 selected: selectedCategoryId == null,
                 onTap: () {
                   setState(() => _selectedCategoryId = null);
@@ -151,7 +156,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
               for (final category in availableCategories) ...[
                 const SizedBox(width: 8),
                 _categoryChip(
-                  label: category.name,
+                  label: DisplayNameService.category(category, l10n),
                   selected: selectedCategoryId == category.id,
                   onTap: () {
                     setState(() => _selectedCategoryId = category.id);
@@ -164,12 +169,12 @@ class _QuickAddPageState extends State<QuickAddPage> {
         ),
         const SizedBox(height: 30),
         Text(
-          'YOUR ACTIVITIES',
+          l10n.dashboardYourActivities,
           style: AppTypography.section.copyWith(fontSize: 25),
         ),
         const SizedBox(height: 5),
         Text(
-          '${filteredActivities.length} activities · Tap to record',
+          l10n.addActivityCount(filteredActivities.length),
           style: AppTypography.caption,
         ),
         const SizedBox(height: 18),
@@ -222,7 +227,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
               const SizedBox(width: 15),
               Expanded(
                 child: Text(
-                  'Every little moment adds to your story.',
+                  l10n.addClosingMessage,
                   style: AppTypography.body.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -273,6 +278,8 @@ class _QuickAddPageState extends State<QuickAddPage> {
     required int count,
     required Color background,
   }) {
+    final l10n = AppLocalizations.of(context)!;
+    final displayName = DisplayNameService.activity(activity, l10n);
     final icon = _icons[activity.iconName] ?? Icons.category_rounded;
 
     return Material(
@@ -306,7 +313,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
                 ),
                 const Spacer(),
                 Text(
-                  activity.name,
+                  displayName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.body.copyWith(
@@ -319,7 +326,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
                   children: [
                     Expanded(
                       child: Text(
-                        '$count recorded',
+                        AppLocalizations.of(context)!.dashboardRecorded(count),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.caption.copyWith(
@@ -330,7 +337,7 @@ class _QuickAddPageState extends State<QuickAddPage> {
                     if (count > 0)
                       IconButton(
                         key: Key('remove_activity_${activity.id}'),
-                        tooltip: 'Manage recorded moments',
+                        tooltip: AppLocalizations.of(context)!.dashboardManageMoments,
                         onPressed: () => widget.onRemove(activity.id),
                         icon: const Icon(Icons.remove_rounded),
                         iconSize: 18,
@@ -375,16 +382,16 @@ class _QuickAddPageState extends State<QuickAddPage> {
           const SizedBox(height: 12),
           Text(
             hasActiveActivities
-                ? 'Nothing found.'
-                : 'Your story starts here.',
+                ? AppLocalizations.of(context)!.addNothingFound
+                : AppLocalizations.of(context)!.addStoryStartsHere,
             style: AppTypography.hero.copyWith(fontSize: 24),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
             hasActiveActivities
-                ? 'Try another search or category.'
-                : 'No activities are currently available.',
+                ? AppLocalizations.of(context)!.addTryAnotherSearch
+                : AppLocalizations.of(context)!.addNoActivitiesAvailable,
             style: AppTypography.body.copyWith(
               color: AppColors.mutedText,
             ),

@@ -1,0 +1,352 @@
+{
+  "@@locale": "pt",
+  "welcomeHello": "Olá!",
+  "welcomeTitle": "Boas-vindas à Life in Numbers.",
+  "welcomeDescription": "Cada pequeno momento conta.\nVamos tornar este espaço teu.",
+  "welcomeNameHint": "Como te devemos chamar?",
+  "welcomeContinue": "Continuar",
+  "welcomeNameRequired": "Introduz o teu nome.",
+  "welcomeSaveError": "Não foi possível guardar o teu nome. Tenta novamente.",
+  "settingsTitle": "Definições",
+  "settingsLanguage": "Idioma",
+  "settingsLanguageDescription": "Escolhe o idioma da Life in Numbers.",
+  "settingsSystemDefault": "Automático (Sistema)",
+  "dashboardGoodMorning": "Bom dia",
+  "dashboardGoodAfternoon": "Boa tarde",
+  "dashboardGoodEvening": "Boa noite",
+  "dashboardSubtitle": "Os teus momentos. As tuas emoções. A tua história.",
+  "dashboardMomentsRecorded": "{count, plural, one{momento registado} other{momentos registados}}",
+  "dashboardActivitiesTracked": "Atividades acompanhadas",
+  "dashboardAllTimeMoments": "Momentos no total",
+  "dashboardFeelingsThisMonth": "Emoções este mês",
+  "dashboardAllTimeFeelings": "Emoções no total",
+  "dashboardYourActivities": "AS TUAS ATIVIDADES",
+  "dashboardYourFeelings": "AS TUAS EMOÇÕES",
+  "dashboardSeeAll": "Ver tudo",
+  "dashboardActivitiesSubtitle": "Um toque. Mais um momento.",
+  "dashboardFeelingsSubtitle": "Um pequeno momento para ti.",
+  "dashboardNoFeelings": "Ainda não registaste emoções. Toca em «Ver tudo» para registares a primeira.",
+  "dashboardHighlights": "DESTAQUES",
+  "dashboardSource": "Fonte: {source}",
+  "dashboardPreviousHighlight": "Destaque anterior",
+  "dashboardNextHighlight": "Destaque seguinte",
+  "dashboardRecorded": "{count} registados",
+  "dashboardManageMoments": "Gerir momentos registados",
+  "dashboardNoActivities": "Ainda não registaste momentos. Toca em «Ver tudo» para registares a primeira atividade.",
+  "dashboardLifeInNumbersLabel": "A TUA VIDA EM NÚMEROS",
+  "dashboardDidYouKnow": "SABIAS QUE? · {activity}",
+  "dashboardEmotionJoy": "Alegria",
+  "dashboardEmotionHappiness": "Felicidade",
+  "dashboardEmotionSadness": "Tristeza",
+  "dashboardEmotionAnger": "Raiva",
+  "dashboardEmotionFear": "Medo",
+  "dashboardEmotionDisgust": "Nojo",
+  "dashboardEmotionSurprise": "Surpresa",
+  "@dashboardMomentsRecorded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@dashboardRecorded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@dashboardSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "@dashboardDidYouKnow": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      }
+    }
+  },
+  "addMomentTitle": "ADICIONAR UM MOMENTO",
+  "addMomentSubtitle": "O que tens feito?",
+  "addSearchHint": "Pesquisar atividades...",
+  "addAllCategories": "Todas",
+  "addActivityCount": "{count, plural, =0{Sem atividades · Toca para registar} one{1 atividade · Toca para registar} other{{count} atividades · Toca para registar}}",
+  "addClosingMessage": "Cada pequeno momento faz parte da tua história.",
+  "addNothingFound": "Nenhum resultado.",
+  "addStoryStartsHere": "A tua história começa aqui.",
+  "addTryAnotherSearch": "Experimenta outra pesquisa ou categoria.",
+  "addNoActivitiesAvailable": "Não existem atividades disponíveis neste momento.",
+  "@addActivityCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moodTitle": "REGISTAR UMA EMOÇÃO",
+  "moodSubtitle": "Como te sentes neste momento?",
+  "moodFeelingRecorded": "{name} registada",
+  "moodUndo": "ANULAR",
+  "moodDeleteTitle": "Eliminar esta emoção?",
+  "moodDeleteDescription": "Esta emoção será removida do teu histórico.",
+  "moodCancel": "Cancelar",
+  "moodDelete": "Eliminar",
+  "moodRecordedCount": "{count} registos",
+  "moodDeleteTooltip": "Eliminar emoção",
+  "moodTapHint": "Toca numa emoção para a registar.",
+  "moodHistoryCount": "{count, plural, =0{Nenhuma emoção registada} =1{1 emoção registada} other{{count} emoções registadas}}",
+  "moodEmptyTitle": "A tua história emocional começa aqui.",
+  "moodEmptyDescription": "Regista uma emoção para começares a descobrir os teus padrões.",
+  "@moodFeelingRecorded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@moodRecordedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@moodHistoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statisticsTitle": "ESTATÍSTICAS",
+  "statisticsSubtitle": "A tua vida vista através dos números.",
+  "statisticsOverview": "A tua vida num relance",
+  "statisticsAllTime": "TOTAL",
+  "statisticsThisMonth": "ESTE MÊS",
+  "statisticsLast7": "ÚLTIMOS 7 DIAS",
+  "statisticsToday": "HOJE",
+  "statisticsTotalMoments": "Total de momentos",
+  "statisticsMomentsRecorded": "Momentos registados",
+  "statisticsMomentsToday": "Momentos de hoje",
+  "statisticsMoments": "MOMENTOS",
+  "statisticsMomentsHint": "Desliza para explorar os teus padrões de atividade.",
+  "statisticsEmptyMoments": "Ainda não há momentos registados.",
+  "statisticsEmptyMomentWeekdays": "Regista momentos para descobrires as tuas atividades por dia da semana.",
+  "statisticsEmptyMomentMonths": "Regista momentos para descobrires as tuas atividades por mês.",
+  "statisticsFeelingsHint": "As emoções que registaste independentemente dos momentos.",
+  "statisticsFeelingsRecorded": "Emoções registadas",
+  "statisticsFeelingsToday": "Emoções de hoje",
+  "statisticsFeelingsMonth": "Emoções deste mês",
+  "statisticsEmptyFeelings": "Regista a primeira emoção para veres os teus padrões emocionais.",
+  "statisticsEmptyFeelingWeekdays": "Regista emoções para descobrires a distribuição semanal.",
+  "statisticsEmptyFeelingMonths": "Regista emoções para descobrires a distribuição mensal.",
+  "statisticsMomentsFeelings": "MOMENTOS E EMOÇÕES",
+  "statisticsInsightHint": "Padrões encontrados nos teus momentos e emoções.",
+  "statisticsInsufficientTitle": "Os teus padrões estão a ganhar forma.",
+  "statisticsInsufficientMessage": "Regista momentos e emoções em mais dias para identificar padrões no mesmo dia. Não tiramos conclusões com poucos dados.",
+  "statisticsPreviousChart": "Gráfico anterior",
+  "statisticsNextChart": "Gráfico seguinte",
+  "statisticsCompareHint": "Seleciona uma ou mais opções para comparar. Toca num dia ou mês para ver detalhes.",
+  "statisticsTop3": "Top 3",
+  "statisticsEmptyPeriod": "Sem registos neste período.",
+  "statisticsBreakdown": "Distribuição",
+  "statisticsWeekdays": "Dias da semana",
+  "statisticsOverTime": "Ao longo do tempo",
+  "statisticsMon": "Seg",
+  "statisticsTue": "Ter",
+  "statisticsWed": "Qua",
+  "statisticsThu": "Qui",
+  "statisticsFri": "Sex",
+  "statisticsSat": "Sáb",
+  "statisticsSun": "Dom",
+  "statisticsPeriodCount": "{period} · {count} registos",
+  "statisticsMonthsShort": "{count}M",
+  "@statisticsPeriodCount": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@statisticsMonthsShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activityCoffee": "Café",
+  "activityShopping": "Compras",
+  "activityReading": "Leitura",
+  "activitySport": "Desporto",
+  "activityGaming": "Videojogos",
+  "activityMeditation": "Meditação",
+  "activityRestaurant": "Restaurante",
+  "activityCinema": "TV / Cinema",
+  "activityWalking": "Caminhada",
+  "activitySocial": "Vida social",
+  "categoryConsumption": "Consumo",
+  "categoryExperiences": "Experiências",
+  "categoryHobbies": "Passatempos",
+  "categoryWellness": "Bem-estar",
+  "categorySocial": "Vida social",
+  "categoryFitness": "Atividade física",
+  "weekdayMonday": "segunda-feira",
+  "weekdayTuesday": "terça-feira",
+  "weekdayWednesday": "quarta-feira",
+  "weekdayThursday": "quinta-feira",
+  "weekdayFriday": "sexta-feira",
+  "weekdaySaturday": "sábado",
+  "weekdaySunday": "domingo",
+  "highlightStartTitle": "A tua história começa aqui",
+  "highlightStartMessage": "Regista o teu primeiro momento para começares a descobrir os teus padrões.",
+  "highlightTopTitle": "A tua atividade mais frequente",
+  "highlightTopMessage": "{activity} lidera os registos deste mês, com {count} {count, plural, one{registo} other{registos}}.",
+  "@highlightTopMessage": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightTieTitle": "Um primeiro lugar partilhado",
+  "highlightTieMessage": "{activities} estão empatadas este mês, com {count} {count, plural, one{registo} other{registos}} cada.",
+  "@highlightTieMessage": {
+    "placeholders": {
+      "activities": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightMultipleTieMessage": "{activitiesCount} atividades partilham o primeiro lugar este mês, com {count} registos cada.",
+  "@highlightMultipleTieMessage": {
+    "placeholders": {
+      "activitiesCount": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightVarietyTitle": "Um pouco de variedade",
+  "highlightVarietyMessage": "Registaste {activitiesCount} atividades diferentes este mês, num total de {momentsCount} momentos.",
+  "@highlightVarietyMessage": {
+    "placeholders": {
+      "activitiesCount": {
+        "type": "int"
+      },
+      "momentsCount": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightWeekdayTitle": "O teu dia com mais registos",
+  "highlightWeekdayMessage": "{day} é o dia com mais momentos registados até agora, com {count} {count, plural, one{registo} other{registos}}.",
+  "@highlightWeekdayMessage": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightMoreTitle": "Mais momentos registados",
+  "highlightMoreMessage": "Registaste {currentCount} momentos nos últimos 7 dias, face a {previousCount} nos 7 dias anteriores.",
+  "@highlightMoreMessage": {
+    "placeholders": {
+      "currentCount": {
+        "type": "int"
+      },
+      "previousCount": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightRecentTitle": "A tua atividade recente",
+  "highlightRecentMessage": "Registaste {currentCount} momentos nos últimos 7 dias, face a {previousCount} nos 7 dias anteriores.",
+  "@highlightRecentMessage": {
+    "placeholders": {
+      "currentCount": {
+        "type": "int"
+      },
+      "previousCount": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightMilestoneTitle": "Uma conquista pessoal",
+  "highlightMilestoneMessage": "Ultrapassaste os {count} momentos registados. A tua história continua a crescer, momento a momento.",
+  "@highlightMilestoneMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "highlightGrowingTitle": "A tua história está a crescer",
+  "highlightGrowingMessage": "Já registaste {count} {count, plural, one{momento} other{momentos}}. Continua a construir a tua linha do tempo.",
+  "@highlightGrowingMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardHighlightsLifeLabel": "A TUA VIDA EM NÚMEROS",
+  "dashboardHighlightsFactLabel": "SABIAS QUE? · {activity}",
+  "@dashboardHighlightsFactLabel": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardHighlightSource": "Fonte: {source}",
+  "@dashboardHighlightSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "factWalking01Title": "Cada passo conta",
+  "factWalking01Message": "Não precisas de um treino perfeito para beneficiar do movimento. A Organização Mundial da Saúde salienta que alguma atividade física é melhor do que nenhuma, e caminhar é uma forma de te manteres ativo.",
+  "factWalking02Title": "Começar devagar também conta",
+  "factWalking02Message": "Quem é fisicamente inativo pode começar com pequenas quantidades de atividade e aumentar gradualmente a duração e a intensidade. A consistência pode começar com algo simples.",
+  "factSocial01Title": "As ligações fazem a diferença",
+  "factSocial01Message": "As relações sociais de apoio estão associadas a uma melhor saúde física e mental. Sentir ligação aos outros é importante para o bem-estar.",
+  "factSocial02Title": "As pequenas ligações contam",
+  "factSocial02Message": "As relações significativas nem sempre exigem grandes planos. Pequenos gestos, como perguntar a alguém como está, podem fortalecer as relações.",
+  "manageTitle": "Gerir atividades",
+  "manageNewActivity": "Nova atividade",
+  "manageEditActivity": "Editar atividade",
+  "manageActivityName": "Nome da atividade",
+  "manageCategory": "Categoria",
+  "manageCancel": "Cancelar",
+  "manageSave": "Guardar",
+  "manageDescription": "Escolhe o que queres registar. As atividades desativadas mantêm o seu histórico.",
+  "manageLoadError": "Não foi possível carregar as atividades.",
+  "manageCreated": "Atividade criada.",
+  "manageUpdated": "Atividade atualizada.",
+  "manageSaveError": "Não foi possível guardar a atividade.",
+  "navHome": "Início",
+  "navAdd": "Adicionar",
+  "navMood": "Emoções",
+  "navStatistics": "Estatísticas"
+}

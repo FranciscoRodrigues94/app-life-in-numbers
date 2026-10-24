@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:life_in_numbers/l10n/app_localizations.dart';
 
 import '../controllers/mood_controller.dart';
 import '../core/theme/app_theme.dart';
@@ -29,16 +30,29 @@ class MoodPage extends StatelessWidget {
     'surprise': Color(0xFFB6DDE0),
   };
 
+  String _emotionName(BuildContext context, String id) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (id) {
+      case 'joy': return l10n.dashboardEmotionJoy;
+      case 'happiness': return l10n.dashboardEmotionHappiness;
+      case 'sadness': return l10n.dashboardEmotionSadness;
+      case 'anger': return l10n.dashboardEmotionAnger;
+      case 'fear': return l10n.dashboardEmotionFear;
+      case 'disgust': return l10n.dashboardEmotionDisgust;
+      case 'surprise': return l10n.dashboardEmotionSurprise;
+      default: return DefaultEmotions.primary.where((item) => item.id == id).map((item) => item.name).firstOrNull ?? id;
+    }
+  }
+
   void _addFeeling(BuildContext context, String emotionId) {
     if (controller.isLoading || controller.error != null) return;
 
     final entry = controller.addFeeling(emotionId);
-    final emotion = DefaultEmotions.primary.firstWhere(
-      (item) => item.id == emotionId,
-    );
+    final l10n = AppLocalizations.of(context)!;
+    final emotionName = _emotionName(context, emotionId);
 
     if (onShowNotice != null) {
-      onShowNotice!('${emotion.name} recorded', () {
+      onShowNotice!(l10n.moodFeelingRecorded(emotionName), () {
         controller.removeFeeling(entry.id);
       });
       return;
@@ -48,10 +62,10 @@ class MoodPage extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('${emotion.name} recorded'),
+          content: Text(l10n.moodFeelingRecorded(emotionName)),
           duration: const Duration(seconds: 3),
           action: SnackBarAction(
-            label: 'UNDO',
+            label: l10n.moodUndo,
             onPressed: () => controller.removeFeeling(entry.id),
           ),
         ),
@@ -59,19 +73,20 @@ class MoodPage extends StatelessWidget {
   }
 
   Future<void> _deleteFeeling(BuildContext context, LifeMoodEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete this feeling?'),
-        content: const Text('This feeling will be removed from your history.'),
+        title: Text(l10n.moodDeleteTitle),
+        content: Text(l10n.moodDeleteDescription),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.moodCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: Text(l10n.moodDelete),
           ),
         ],
       ),
@@ -97,6 +112,7 @@ class MoodPage extends StatelessWidget {
     double width,
     int count,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: width,
       child: Material(
@@ -130,7 +146,7 @@ class MoodPage extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    emotion.name,
+                    _emotionName(context, emotion.id),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.body.copyWith(
@@ -141,7 +157,7 @@ class MoodPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    '$count recorded',
+                    l10n.moodRecordedCount(count),
                     style: AppTypography.caption.copyWith(
                       color: AppColors.navy.withValues(alpha: 0.7),
                     ),
@@ -160,7 +176,8 @@ class MoodPage extends StatelessWidget {
     final emotion = DefaultEmotions.primary
         .where((item) => item.id == entry.primaryEmotionId)
         .firstOrNull;
-    final name = emotion?.name ?? entry.primaryEmotionId;
+    final name = _emotionName(context, emotion?.id ?? entry.primaryEmotionId);
+    final l10n = AppLocalizations.of(context)!;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -205,7 +222,7 @@ class MoodPage extends StatelessWidget {
             ),
             IconButton(
               key: Key('delete_feeling_${entry.id}'),
-              tooltip: 'Delete feeling',
+              tooltip: l10n.moodDeleteTooltip,
               onPressed: () => _deleteFeeling(context, entry),
               icon: const Icon(Icons.delete_outline_rounded),
               color: AppColors.mutedText,
@@ -218,6 +235,7 @@ class MoodPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
@@ -238,12 +256,12 @@ class MoodPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'LOG A FEELING',
+              l10n.moodTitle,
               style: AppTypography.section.copyWith(fontSize: 39, height: 1.05),
             ),
             const SizedBox(height: 8),
             Text(
-              'How are you feeling right now?',
+              l10n.moodSubtitle,
               style: AppTypography.body.copyWith(color: AppColors.mutedText),
             ),
             const SizedBox(height: 28),
@@ -280,7 +298,7 @@ class MoodPage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Tap an emotion to record it.',
+                l10n.moodTapHint,
                 style: AppTypography.caption,
                 textAlign: TextAlign.center,
               ),
@@ -295,12 +313,12 @@ class MoodPage extends StatelessWidget {
               ],
               const SizedBox(height: 38),
               Text(
-                'YOUR FEELINGS',
+                l10n.dashboardYourFeelings,
                 style: AppTypography.section.copyWith(fontSize: 25),
               ),
               const SizedBox(height: 5),
               Text(
-                '${entries.length} feelings recorded',
+                l10n.moodHistoryCount(entries.length),
                 style: AppTypography.caption,
               ),
               const SizedBox(height: 18),
@@ -320,7 +338,7 @@ class MoodPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Your emotional story starts here.',
+                        l10n.moodEmptyTitle,
                         style: AppTypography.body.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -328,7 +346,7 @@ class MoodPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Record a feeling to start discovering your patterns.',
+                        l10n.moodEmptyDescription,
                         style: AppTypography.caption,
                         textAlign: TextAlign.center,
                       ),

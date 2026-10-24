@@ -1,16 +1,16 @@
 
+import 'package:life_in_numbers/l10n/app_localizations.dart';
+import 'package:life_in_numbers/l10n/app_localizations_en.dart';
 import '../models/life_activity.dart';
 import '../models/life_event.dart';
+import 'display_name_service.dart';
 import 'statistics_service.dart';
 
 class LifeHighlight {
   final String title;
   final String message;
 
-  const LifeHighlight({
-    required this.title,
-    required this.message,
-  });
+  const LifeHighlight({required this.title, required this.message});
 }
 
 class HighlightsService {
@@ -19,22 +19,25 @@ class HighlightsService {
   List<LifeHighlight> getHighlights(
     List<LifeEvent> events,
     List<LifeActivity> activities, {
+    AppLocalizations? l10n,
     DateTime? now,
   }) {
+    final translations = l10n ?? AppLocalizationsEn();
     final today = now ?? DateTime.now();
 
     if (events.isEmpty) {
       return [
-        const LifeHighlight(
-          title: 'Your story starts here',
-          message: 'Record your first moment to start discovering your patterns.',
+        LifeHighlight(
+          title: translations.highlightStartTitle,
+          message: translations.highlightStartMessage,
         ),
       ];
     }
 
     final results = <LifeHighlight>[];
     final activityNames = {
-      for (final activity in activities) activity.id: activity.name,
+      for (final activity in activities)
+        activity.id: DisplayNameService.activity(activity, translations),
     };
 
     final monthStart = DateTime(today.year, today.month);
@@ -59,17 +62,26 @@ class HighlightsService {
       if (leaders.length == 1) {
         results.add(
           LifeHighlight(
-            title: 'Your top activity',
-            message: '${leaders.first} leads your recorded moments this month, with $highestCount ${highestCount == 1 ? 'record' : 'records'}.',
+            title: translations.highlightTopTitle,
+            message: translations.highlightTopMessage(
+              leaders.first,
+              highestCount,
+            ),
           ),
         );
       } else {
         results.add(
           LifeHighlight(
-            title: 'A shared first place',
+            title: translations.highlightTieTitle,
             message: leaders.length <= 3
-                ? '${leaders.join(', ')} are tied this month, with $highestCount ${highestCount == 1 ? 'record' : 'records'} each.'
-                : '${leaders.length} activities share first place this month, with $highestCount records each.',
+                ? translations.highlightTieMessage(
+                    leaders.join(', '),
+                    highestCount,
+                  )
+                : translations.highlightMultipleTieMessage(
+                    leaders.length,
+                    highestCount,
+                  ),
           ),
         );
       }
@@ -77,8 +89,11 @@ class HighlightsService {
       if (monthlyCounts.length >= 2) {
         results.add(
           LifeHighlight(
-            title: 'A little variety',
-            message: "You've recorded ${monthlyCounts.length} different activities this month, across ${monthEvents.length} moments.",
+            title: translations.highlightVarietyTitle,
+            message: translations.highlightVarietyMessage(
+              monthlyCounts.length,
+              monthEvents.length,
+            ),
           ),
         );
       }
@@ -86,30 +101,38 @@ class HighlightsService {
 
     if (events.length >= 5) {
       final weekdayCounts = _statistics.eventsByWeekday(events);
-      final highestCount = weekdayCounts.values.reduce(
-        (a, b) => a > b ? a : b,
-      );
-      final leadingDays = weekdayCounts.entries
-          .where((entry) => entry.value == highestCount)
-          .toList();
 
-      if (leadingDays.length == 1 && highestCount >= 2) {
-        const weekdays = [
-          'Monday',
-          'Tuesday',
-          'Wednesday',
-          'Thursday',
-          'Friday',
-          'Saturday',
-          'Sunday',
-        ];
-        final dayName = weekdays[leadingDays.first.key - 1];
-        results.add(
-          LifeHighlight(
-            title: 'Your most recorded day',
-            message: "$dayName leads your recorded moments so far, with $highestCount ${highestCount == 1 ? 'record' : 'records'}.",
-          ),
+      if (weekdayCounts.isNotEmpty) {
+        final highestCount = weekdayCounts.values.reduce(
+          (a, b) => a > b ? a : b,
         );
+        final leadingDays = weekdayCounts.entries
+            .where((entry) => entry.value == highestCount)
+            .toList();
+
+        if (leadingDays.length == 1 && highestCount >= 2) {
+          final weekdays = [
+            translations.weekdayMonday,
+            translations.weekdayTuesday,
+            translations.weekdayWednesday,
+            translations.weekdayThursday,
+            translations.weekdayFriday,
+            translations.weekdaySaturday,
+            translations.weekdaySunday,
+          ];
+
+          final dayName = weekdays[leadingDays.first.key - 1];
+
+          results.add(
+            LifeHighlight(
+              title: translations.highlightWeekdayTitle,
+              message: translations.highlightWeekdayMessage(
+                dayName,
+                highestCount,
+              ),
+            ),
+          );
+        }
       }
     }
 
@@ -132,15 +155,21 @@ class HighlightsService {
       if (currentCount > previousCount) {
         results.add(
           LifeHighlight(
-            title: 'More moments recorded',
-            message: "You've logged $currentCount moments in the last 7 days, compared with $previousCount in the 7 days before that.",
+            title: translations.highlightMoreTitle,
+            message: translations.highlightMoreMessage(
+              currentCount,
+              previousCount,
+            ),
           ),
         );
       } else if (currentCount < previousCount) {
         results.add(
           LifeHighlight(
-            title: 'Your recent activity',
-            message: "You've logged $currentCount moments in the last 7 days, compared with $previousCount in the previous 7 days.",
+            title: translations.highlightRecentTitle,
+            message: translations.highlightRecentMessage(
+              currentCount,
+              previousCount,
+            ),
           ),
         );
       }
@@ -153,10 +182,11 @@ class HighlightsService {
 
     if (reachedMilestones.isNotEmpty) {
       final milestone = reachedMilestones.last;
+
       results.add(
         LifeHighlight(
-          title: 'A personal milestone',
-          message: "You've passed $milestone recorded moments. Your personal history is growing, one moment at a time.",
+          title: translations.highlightMilestoneTitle,
+          message: translations.highlightMilestoneMessage(milestone),
         ),
       );
     }
@@ -164,8 +194,8 @@ class HighlightsService {
     if (results.isEmpty) {
       results.add(
         LifeHighlight(
-          title: 'Your story is growing',
-          message: "You've recorded ${events.length} ${events.length == 1 ? 'moment' : 'moments'} so far. Keep building your personal timeline.",
+          title: translations.highlightGrowingTitle,
+          message: translations.highlightGrowingMessage(events.length),
         ),
       );
     }
@@ -176,10 +206,17 @@ class HighlightsService {
   LifeHighlight highlightOfTheDay(
     List<LifeEvent> events,
     List<LifeActivity> activities, {
+    AppLocalizations? l10n,
     DateTime? now,
   }) {
     final today = now ?? DateTime.now();
-    final highlights = getHighlights(events, activities, now: today);
+    final highlights = getHighlights(
+      events,
+      activities,
+      l10n: l10n,
+      now: today,
+    );
+
     final dayIndex = DateTime.utc(
       today.year,
       today.month,
