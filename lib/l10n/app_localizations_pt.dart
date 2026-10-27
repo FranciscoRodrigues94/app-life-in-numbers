@@ -197,6 +197,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não existem atividades disponíveis neste momento.';
 
   @override
+  String addMomentRecorded(String name) {
+    return '$name adicionado';
+  }
+
+  @override
   String get moodTitle => 'REGISTAR UMA EMOÇÃO';
 
   @override
@@ -847,6 +852,11 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   @override
   String get addNoActivitiesAvailable =>
       'Não existem atividades disponíveis neste momento.';
+
+  @override
+  String addMomentRecorded(String name) {
+    return '$name adicionado';
+  }
 
   @override
   String get moodTitle => 'REGISTAR UMA EMOÇÃO';

@@ -80,6 +80,14 @@
   "addStoryStartsHere": "A tua história começa aqui.",
   "addTryAnotherSearch": "Experimenta outra pesquisa ou categoria.",
   "addNoActivitiesAvailable": "Não existem atividades disponíveis neste momento.",
+  "addMomentRecorded": "{name} adicionado",
+  "@addMomentRecorded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "@addActivityCount": {
     "placeholders": {
       "count": {

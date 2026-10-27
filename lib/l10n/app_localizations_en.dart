@@ -194,6 +194,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'No activities are currently available.';
 
   @override
+  String addMomentRecorded(String name) {
+    return '$name added';
+  }
+
+  @override
   String get moodTitle => 'LOG A FEELING';
 
   @override

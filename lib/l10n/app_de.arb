@@ -80,6 +80,7 @@
   "addStoryStartsHere": "Deine Geschichte beginnt hier.",
   "addTryAnotherSearch": "Versuche eine andere Suche oder Kategorie.",
   "addNoActivitiesAvailable": "Zurzeit sind keine Aktivitäten verfügbar.",
+  "addMomentRecorded": "{name} hinzugefügt",
   "@addActivityCount": {
     "placeholders": {
       "count": {

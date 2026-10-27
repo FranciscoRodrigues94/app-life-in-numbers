@@ -198,6 +198,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zurzeit sind keine Aktivitäten verfügbar.';
 
   @override
+  String addMomentRecorded(String name) {
+    return '$name hinzugefügt';
+  }
+
+  @override
   String get moodTitle => 'GEFÜHL FESTHALTEN';
 
   @override

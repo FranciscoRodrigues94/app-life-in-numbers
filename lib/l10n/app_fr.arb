@@ -87,6 +87,14 @@
       }
     }
   },
+  "addMomentRecorded": "{name} ajouté",
+  "@addMomentRecorded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "moodTitle": "NOTER UNE ÉMOTION",
   "moodSubtitle": "Comment te sens-tu en ce moment ?",
   "moodFeelingRecorded": "Émotion enregistrée : {name}",

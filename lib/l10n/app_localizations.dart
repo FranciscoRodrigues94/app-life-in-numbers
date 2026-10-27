@@ -417,6 +417,12 @@ abstract class AppLocalizations {
   /// **'No activities are currently available.'**
   String get addNoActivitiesAvailable;
 
+  /// No description provided for @addMomentRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added'**
+  String addMomentRecorded(String name);
+
   /// No description provided for @moodTitle.
   ///
   /// In en, this message translates to:
