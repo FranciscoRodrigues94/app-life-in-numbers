@@ -9,7 +9,6 @@ import 'controllers/language_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'models/life_activity.dart';
 import 'models/life_category.dart';
-import 'models/default_emotions.dart';
 import 'pages/activity_management_page.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/quick_add_page.dart';
@@ -20,6 +19,7 @@ import 'services/category_repository.dart';
 import 'features/onboarding/pages/welcome_page.dart';
 import 'features/settings/pages/settings_page.dart';
 import 'l10n/app_localizations.dart';
+import 'services/display_name_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -283,9 +283,9 @@ class _MainPageState extends State<MainPage> {
                           _hideRecordNotice();
                           onUndo();
                         },
-                        child: const Text(
-                          'Undo',
-                          style: TextStyle(color: AppColors.sage),
+                        child: Text(
+                          AppLocalizations.of(context)!.moodUndo,
+                          style: const TextStyle(color: AppColors.sage),
                         ),
                       ),
                       IconButton(
@@ -317,12 +317,18 @@ class _MainPageState extends State<MainPage> {
   void _addFeeling(String emotionId) {
     if (_moodController.isLoading || _moodController.error != null) return;
     final entry = _moodController.addFeeling(emotionId);
-    final name = DefaultEmotions.primary
-        .where((emotion) => emotion.id == emotionId)
-        .map((emotion) => emotion.name)
-        .firstOrNull ?? emotionId;
-
-    _showRecordNotice('$name recorded', () {
+    final l10n = AppLocalizations.of(context)!;
+    final name = switch (emotionId) {
+      'joy' => l10n.dashboardEmotionJoy,
+      'happiness' => l10n.dashboardEmotionHappiness,
+      'sadness' => l10n.dashboardEmotionSadness,
+      'anger' => l10n.dashboardEmotionAnger,
+      'fear' => l10n.dashboardEmotionFear,
+      'disgust' => l10n.dashboardEmotionDisgust,
+      'surprise' => l10n.dashboardEmotionSurprise,
+      _ => emotionId,
+    };
+    _showRecordNotice(l10n.moodFeelingRecorded(name), () {
       _moodController.removeFeeling(entry.id);
     });
   }
@@ -399,12 +405,12 @@ class _MainPageState extends State<MainPage> {
 
   void _addRecord(String activityId) {
     final event = _lifeController.addEvent(activityId);
-    final activityName = _activities
-        .where((activity) => activity.id == activityId)
-        .map((activity) => activity.name)
-        .firstOrNull ?? activityId;
-
-    _showRecordNotice('$activityName added', () {
+    final l10n = AppLocalizations.of(context)!;
+    final activity = _activities.where((item) => item.id == activityId).firstOrNull;
+    final activityName = activity == null
+        ? activityId
+        : DisplayNameService.activity(activity, l10n);
+    _showRecordNotice(l10n.addMomentRecorded(activityName), () {
       _lifeController.removeEvent(event.id);
     });
   }

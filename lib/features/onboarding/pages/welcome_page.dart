@@ -4,7 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:life_in_numbers/l10n/app_localizations.dart';
 import 'package:life_in_numbers/features/settings/pages/settings_page.dart';
-import '../widgets/mascot_widget.dart';
+import 'package:life_in_numbers/widgets/mascot_widget.dart';
+
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key, required this.onCompleted});
@@ -105,7 +106,9 @@ class _WelcomePageState extends State<WelcomePage> {
                     ),
                     const SizedBox(height: 24),
                     const Spacer(),
-                    MascotWidget(height: mascotHeight),
+                    Center(
+                      child: MascotWidget(size: mascotHeight),
+                    ),
                     const Spacer(),
                     Text(
                       l10n.welcomeHello,

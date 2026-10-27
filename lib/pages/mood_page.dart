@@ -246,23 +246,52 @@ class MoodPage extends StatelessWidget {
           key: const Key('mood_page'),
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
           children: [
-            Text(
-              'LIFE IN NUMBERS',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.accent,
-                letterSpacing: 2.5,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.moodTitle,
-              style: AppTypography.section.copyWith(fontSize: 39, height: 1.05),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.moodSubtitle,
-              style: AppTypography.body.copyWith(color: AppColors.mutedText),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final mascotSize = (constraints.maxWidth * 0.25).clamp(78.0, 150.0);
+                final titleSize = constraints.maxWidth < 380 ? 31.0 : 39.0;
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'LIFE IN NUMBERS',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.accent,
+                              letterSpacing: 2.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            l10n.moodTitle,
+                            style: AppTypography.section.copyWith(
+                              fontSize: titleSize,
+                              height: 1.05,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.moodSubtitle,
+                            style: AppTypography.body.copyWith(color: AppColors.mutedText),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Image.asset(
+                      'assets/mascot/mascot_feel.png',
+                      width: mascotSize,
+                      height: mascotSize,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 28),
             if (controller.isLoading)

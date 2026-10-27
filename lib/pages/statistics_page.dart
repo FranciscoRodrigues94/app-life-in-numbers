@@ -191,13 +191,51 @@ class _StatisticsPageState extends State<StatisticsPage> {
       key: const Key('statistics_page'),
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
       children: [
-        Text('LIFE IN NUMBERS', style: AppTypography.caption.copyWith(
-          color: AppColors.accent, letterSpacing: 2.5, fontWeight: FontWeight.w800,
-        )),
-        const SizedBox(height: 12),
-        Text(l10n.statisticsTitle, style: AppTypography.section.copyWith(fontSize: 39, height: 1.05)),
-        const SizedBox(height: 8),
-        Text(l10n.statisticsSubtitle, style: AppTypography.body.copyWith(color: AppColors.mutedText)),
+        LayoutBuilder(builder: (context, constraints) {
+          final mascotSize = (constraints.maxWidth * 0.38).clamp(105.0, 155.0);
+          return SizedBox(
+            height: math.max(190.0, mascotSize + 8),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: mascotSize - 8,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('LIFE IN NUMBERS', style: AppTypography.caption.copyWith(
+                        color: AppColors.accent, letterSpacing: 2.5, fontWeight: FontWeight.w800,
+                      )),
+                      const SizedBox(height: 12),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(l10n.statisticsTitle,
+                          style: AppTypography.section.copyWith(fontSize: 39, height: 1.05)),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(l10n.statisticsSubtitle,
+                        style: AppTypography.body.copyWith(color: AppColors.mutedText)),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Image.asset(
+                    'assets/mascot/mascot_stats.png',
+                    width: mascotSize,
+                    height: mascotSize,
+                    fit: BoxFit.contain,
+                    semanticLabel: 'Statistics mascot',
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
         const SizedBox(height: 30),
         Text(l10n.statisticsOverview, style: AppTypography.hero.copyWith(fontSize: 27)),
         const SizedBox(height: 16),

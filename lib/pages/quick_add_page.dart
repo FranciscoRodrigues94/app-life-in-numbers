@@ -87,28 +87,52 @@ class _QuickAddPageState extends State<QuickAddPage> {
       key: const Key('quick_add_page'),
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
       children: [
-        Text(
-          'LIFE IN NUMBERS',
-          style: AppTypography.caption.copyWith(
-            color: AppColors.accent,
-            letterSpacing: 2.5,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          l10n.addMomentTitle,
-          style: AppTypography.section.copyWith(
-            fontSize: 39,
-            height: 1.05,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          l10n.addMomentSubtitle,
-          style: AppTypography.body.copyWith(
-            color: AppColors.mutedText,
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final mascotSize = constraints.maxWidth < 360 ? 96.0 : 128.0;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'LIFE IN NUMBERS',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.accent,
+                          letterSpacing: 2.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.addMomentTitle,
+                        style: AppTypography.section.copyWith(
+                          fontSize: 39,
+                          height: 1.05,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.addMomentSubtitle,
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.mutedText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Image.asset(
+                  'assets/mascot/mascot_writing.png',
+                  width: mascotSize,
+                  height: mascotSize,
+                  fit: BoxFit.contain,
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 28),
         TextField(
