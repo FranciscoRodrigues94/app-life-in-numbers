@@ -15,9 +15,9 @@ class AppColors {
 }
 
 class AppTypography {
-  static TextStyle get hero => GoogleFonts.bodoniModa(
+  static TextStyle get hero => GoogleFonts.nunito(
     fontSize: 38,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w800,
     height: 1.1,
     color: AppColors.navy,
   );
