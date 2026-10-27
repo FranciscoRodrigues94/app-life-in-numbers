@@ -17,6 +17,7 @@ class DashboardPage extends StatefulWidget {
   final List<LifeMoodEntry> feelings;
   final VoidCallback onShowMood;
   final ValueChanged<String> onAddFeeling;
+  final ValueChanged<String> onRemoveFeeling;
   final String userName;
   final VoidCallback onEditName;
   final ValueChanged<String> onAdd;
@@ -31,6 +32,7 @@ class DashboardPage extends StatefulWidget {
     required this.feelings,
     required this.onShowMood,
     required this.onAddFeeling,
+    required this.onRemoveFeeling,
     required this.userName,
     required this.onEditName,
     required this.onAdd,
@@ -673,11 +675,32 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  l10n.dashboardRecorded(count),
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.navy.withValues(alpha: 0.7),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.dashboardRecorded(count),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.navy.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      key: Key('remove_feeling_${emotion.id}'),
+                      tooltip: l10n.moodDeleteTooltip,
+                      onPressed: () => widget.onRemoveFeeling(emotion.id),
+                      icon: const Icon(Icons.remove_rounded),
+                      iconSize: 18,
+                      color: AppColors.navy.withValues(alpha: 0.65),
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.65),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

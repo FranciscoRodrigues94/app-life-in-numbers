@@ -333,6 +333,17 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  void _removeLatestFeeling(String emotionId) {
+    if (_moodController.isLoading || _moodController.error != null) return;
+    final matchingEntries = _moodController.entries
+        .where((entry) => entry.primaryEmotionId == emotionId)
+        .toList()
+      ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+    if (matchingEntries.isEmpty) return;
+    _hideRecordNotice();
+    _moodController.removeFeeling(matchingEntries.first.id);
+  }
+
   Future<void> _previewWelcome() async {
     await Navigator.push(
       context,
@@ -665,6 +676,7 @@ class _MainPageState extends State<MainPage> {
             feelings: _moodController.entries,
             onShowMood: () => setState(() => _selectedIndex = 2),
             onAddFeeling: _addFeeling,
+            onRemoveFeeling: _removeLatestFeeling,
             userName: _userName,
             onEditName: _editUserName,
             onAdd: _addRecord,
