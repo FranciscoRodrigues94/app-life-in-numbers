@@ -16,6 +16,7 @@ class DashboardPage extends StatefulWidget {
   final List<LifeEvent> events;
   final List<LifeMoodEntry> feelings;
   final VoidCallback onShowMood;
+  final VoidCallback onOpenSettings;
   final ValueChanged<String> onAddFeeling;
   final ValueChanged<String> onRemoveFeeling;
   final String userName;
@@ -31,6 +32,7 @@ class DashboardPage extends StatefulWidget {
     required this.events,
     required this.feelings,
     required this.onShowMood,
+    required this.onOpenSettings,
     required this.onAddFeeling,
     required this.onRemoveFeeling,
     required this.userName,
@@ -273,9 +275,11 @@ class _DashboardPageState extends State<DashboardPage> {
             Material(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(18),
-              child: const Padding(
-                padding: EdgeInsets.all(12),
-                child: Icon(Icons.auto_awesome_rounded, color: AppColors.navy),
+              child: IconButton(
+                key: const Key('dashboard_language_settings'),
+                tooltip: l10n.settingsLanguage,
+                onPressed: widget.onOpenSettings,
+                icon: const Icon(Icons.language_rounded, color: AppColors.navy),
               ),
             ),
           ],

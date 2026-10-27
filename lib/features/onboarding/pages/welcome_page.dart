@@ -239,17 +239,6 @@ class _WelcomePageState extends State<WelcomePage> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 29),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _PageDot(selected: true),
-                        SizedBox(width: 13),
-                        _PageDot(selected: false),
-                        SizedBox(width: 13),
-                        _PageDot(selected: false),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -266,72 +255,13 @@ class _WelcomeLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          height: 35,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                width: 13,
-                height: 17,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7BC7B),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Container(
-                width: 13,
-                height: 25,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF91AB97),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Container(
-                width: 13,
-                height: 35,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF355B77),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 9),
-        Text(
-          'LIFE IN NUMBERS',
-          style: GoogleFonts.nunito(
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 3.4,
-            color: const Color(0xFF18344B),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PageDot extends StatelessWidget {
-  const _PageDot({required this.selected});
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 11,
-      height: 11,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: selected
-            ? const Color(0xFF355B77)
-            : const Color(0xFFDCDCD7),
+    return Text(
+      'LIFE IN NUMBERS',
+      style: GoogleFonts.nunito(
+        fontSize: 15,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 3.4,
+        color: const Color(0xFF18344B),
       ),
     );
   }

@@ -344,17 +344,6 @@ class _MainPageState extends State<MainPage> {
     _moodController.removeFeeling(matchingEntries.first.id);
   }
 
-  Future<void> _previewWelcome() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WelcomePage(
-          onCompleted: () => Navigator.pop(context),
-        ),
-      ),
-    );
-  }
-
   Future<void> _openSettings() async {
     await Navigator.push(
       context,
@@ -667,47 +656,20 @@ class _MainPageState extends State<MainPage> {
     final l10n = AppLocalizations.of(context)!;
 
     final pages = [
-      Stack(
-        children: [
-          DashboardPage(
-            records: records,
-            activities: _activities,
-            events: events,
-            feelings: _moodController.entries,
-            onShowMood: () => setState(() => _selectedIndex = 2),
-            onAddFeeling: _addFeeling,
-            onRemoveFeeling: _removeLatestFeeling,
-            userName: _userName,
-            onEditName: _editUserName,
-            onAdd: _addRecord,
-            onRemove: _openRecordHistory,
-            onShowAll: () => setState(() => _selectedIndex = 1),
-          ),
-          Positioned(
-            right: 16,
-            bottom: 80,
-            child: FloatingActionButton.small(
-              heroTag: 'open_settings',
-              tooltip: 'Settings',
-              backgroundColor: AppColors.navy,
-              foregroundColor: Colors.white,
-              onPressed: _openSettings,
-              child: const Icon(Icons.settings_outlined),
-            ),
-          ),
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: FloatingActionButton.small(
-              heroTag: 'preview_welcome',
-              tooltip: 'Preview Welcome',
-              backgroundColor: AppColors.navy,
-              foregroundColor: Colors.white,
-              onPressed: _previewWelcome,
-              child: const Icon(Icons.visibility_outlined),
-            ),
-          ),
-        ],
+      DashboardPage(
+        records: records,
+        activities: _activities,
+        events: events,
+        feelings: _moodController.entries,
+        onShowMood: () => setState(() => _selectedIndex = 2),
+        onOpenSettings: _openSettings,
+        onAddFeeling: _addFeeling,
+        onRemoveFeeling: _removeLatestFeeling,
+        userName: _userName,
+        onEditName: _editUserName,
+        onAdd: _addRecord,
+        onRemove: _openRecordHistory,
+        onShowAll: () => setState(() => _selectedIndex = 1),
       ),
       QuickAddPage(
         activities: _activities,
