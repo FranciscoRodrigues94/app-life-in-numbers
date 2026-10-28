@@ -2,67 +2,90 @@
 
 **A personal life tracker for the moments, activities, and feelings that make up everyday life.**
 
-Life in Numbers is a Flutter application that helps you record everyday moments with a tap, reflect on your emotions, and explore your personal history through simple statistics. The project is being developed with an **offline-first, Android-first** approach, with an initial focus on a useful and approachable free experience (the **Light** version).
+Life in Numbers is an offline-first Flutter application for recording everyday moments, checking in with emotions, and exploring personal patterns through statistics. It is being developed **Android-first**, with iOS support planned. The first milestone is a useful, approachable **Light** experience; **Premium** features are planned separately.
 
-> **Project status:** Active development / pre-release. The app is not yet published in an app store.
+> **Project status:** Light feature set implemented; pre-release / preparing for device beta testing. The app is not yet published in an app store. Feature-complete does not mean release-ready.
 
 ## What works today
 
-- **Personalized onboarding:** A welcome flow that asks for your name and remembers it between sessions.
-- **Dashboard:** A personalized greeting, monthly and all-time summaries, recorded activities and emotions, and rotating highlights.
-- **Quick Add:** Record an activity with one tap, browse by category, search activities, and review or remove individual records.
-- **Activity management:** Create and edit activities, choose a category, and enable or disable activities without discarding their recorded history.
-- **Mood tracking:** Log primary emotions independently of activities in the Light experience.
-- **Statistics:** View totals, activity breakdowns, weekday patterns, monthly trends, and emotion statistics using interactive charts and filters.
-- **Highlights:** Data-driven summaries based on recorded activity and a small set of source-linked *Did You Know?* facts.
-- **Localization:** An automatic system-language option and manual language selection, with interface translations for English, German, Portuguese, Spanish, and French.
-- **Local persistence:** Keep personal records and preferences on the device in the current implementation.
+- **Personalized onboarding:** A welcome screen with a mascot, name entry, saved profile name, and access to language settings.
+- **Dashboard:** Personalized greeting; monthly and all-time counts for moments and feelings; quick-add activity and feeling cards; and rotating highlights and facts.
+- **Quick Add:** Record activities in one tap, filter by category, search, and manage individual moment records.
+- **Activity management:** Create and edit activities, assign categories, and disable activities while preserving their history.
+- **Mood tracking:** Independently log primary emotions in Light, see a dated history of feeling entries, and remove specific entries.
+- **Quick corrections:** The `−` button on a moment card opens that activity's record history for selecting a specific entry to delete. The `−` button on a feeling card removes the most recent entry for that emotion; specific feeling entries can be deleted from the Mood page history.
+- **Statistics:** Totals and breakdowns for moments and emotions, weekday and monthly patterns, comparisons, charts, and filters.
+- **Highlights:** Activity-based summaries and a small set of source-attributed *Did You Know?* facts.
+- **Localization:** System-language selection and manual switching between English, German, Portuguese (Portugal), Spanish, and French. Record confirmation messages and the Undo action are localized.
+- **Visual identity:** A mascot displayed on the welcome, Add, Emotions, and Statistics screens; Nunito for prominent titles, Oswald for condensed section headings, and DM Sans for smaller text.
+- **Local persistence:** Moment and feeling records, activities, and preferences are stored locally on the device; no account or cloud sync is required for the current Light experience.
 
-Some generated **statistics insights**, notification messages, and other secondary text are still being localized. Language coverage is a work in progress.
+The mascot artwork is currently **static**; interactive animation is not part of this milestone. Some secondary UI copy or edge-case messages may still need localization review during beta testing.
+
+## Interaction design
+
+Light deliberately gives moments and emotions slightly different correction flows:
+
+| Action | Moments | Feelings |
+| --- | --- | --- |
+| Tap a Dashboard card | Add a moment | Log a feeling |
+| Tap `−` on a Dashboard card | Open that activity's record history | Remove the latest entry for that emotion |
+| Delete a specific historical entry | Select it from the moment-history list | Select it from the Mood page history |
+| Explore patterns | Statistics | Statistics |
+
+This keeps the Mood page's chronological feeling history useful without duplicating it on the Dashboard. A reversible quick-delete flow for feelings is a potential improvement, not a completed feature.
 
 ## Localization and data integrity
 
-The app uses Flutter's localization system (`AppLocalizations`) and ARB files in `lib/l10n/`.
+The app uses Flutter's localization system (`AppLocalizations`), with ARB files in `lib/l10n/` and configuration in `l10n.yaml`.
 
-- Activity and category **IDs remain stable** across languages.
-- Built-in activity and category labels are translated when displayed rather than written back into stored records.
-- User-defined activity names remain unchanged.
-- Previously recorded moments and basic emotion entries are intended to remain available as the app evolves.
+- Built-in activity and category **IDs remain stable** across languages.
+- Built-in labels are localized at display time rather than rewriting persisted records.
+- Custom activity names retain the text entered by their creator.
+- Existing moment and basic feeling records must remain available when users change languages or when future Premium capabilities are introduced.
 
-This separation helps keep statistics and historical data independent of the selected interface language.
+This separation helps keep historical records and statistics independent of the selected interface language.
 
 ## Technology
 
-- **Flutter and Dart**
-- **Material 3** UI
-- **Flutter localization**, ARB resources, and `intl`
-- **Local repositories and controllers** for app state and persistence
-- **Shared Preferences** for onboarding and language preferences
+- Flutter and Dart
+- Material 3
+- `google_fonts` (Nunito, Oswald, DM Sans)
+- Flutter localization, ARB resources, and `intl`
+- Controllers, models, repositories, and services for application state and persistence
+- Shared Preferences-based local storage for current data and preferences
 
-The current codebase separates models, repositories, services, controllers, and UI pages to make future changes easier to manage.
+The codebase separates UI from record-management and display-name logic to support future extensions.
 
 ## Project organization
 
 ```text
-lib/
-├── controllers/      # Application state and record management
-├── core/theme/       # Colors, typography, and visual styles
-├── features/         # Feature-specific screens (e.g., onboarding, settings)
-├── l10n/             # Translation source files
-├── models/           # Activities, categories, events, emotions
-├── pages/            # Dashboard, Add, Mood, Statistics, management
-├── services/         # Repositories, statistics, highlights, display names
-└── main.dart         # App entry point, initialization, navigation
+## Project organization
 
-test/                # Automated tests (under ongoing development)
+lib/
+├── controllers/       # Application state and record management
+├── core/              # Theme, colors, typography, and shared configuration
+├── features/          # Onboarding and settings
+├── l10n/              # Localization and ARB translation files
+├── models/            # Activities, categories, events, and emotions
+├── pages/             # Dashboard, Add, Emotions, Statistics, management
+├── services/          # Repositories, highlights, and business logic
+├── widgets/           # Reusable UI components
+└── main.dart          # App entry point and navigation
+
+assets/
+└── mascot/            # Mascot illustrations and assets
+
+test/                  # Automated tests
 ```
 
 ## Getting started
 
 ### Prerequisites
 
-- Flutter SDK and Dart (a compatible version for `pubspec.yaml`)
-- Android SDK and an Android device or emulator
+- Flutter SDK and Dart compatible with `pubspec.yaml`
+- Android SDK and an emulator or Android device for Android testing
+- For native iOS builds, access to macOS/Xcode or a compatible macOS cloud build service
 
 ### Run locally
 
@@ -72,46 +95,62 @@ flutter gen-l10n
 flutter run
 ```
 
-To run static analysis:
+Run static analysis:
 
 ```bash
 flutter analyze
 ```
 
-> This project is currently developed primarily for Android. iOS support is a future goal and has not been validated as part of the current milestone.
+Prepare an Android release APK for **private testing**:
+
+```bash
+flutter build apk --release
+```
+
+The usual output is `build/app/outputs/flutter-apk/app-release.apk`. Before distributing updates to testers, verify the application identifier, release signing, versioning, and that existing local data survives an upgrade. Building an APK is not the same as publishing to Google Play.
+
+For iPhone beta distribution, the planned route is an iOS build on macOS (locally or through cloud CI), followed by TestFlight. This has **not yet been set up or validated**.
 
 ## Roadmap
 
-### Light — current focus
+### Light — first feature milestone
 
-- [x] Personalized welcome experience and saved user name
-- [x] Quick activity logging and local history
-- [x] Activity and category display-name localization
-- [x] Basic emotion logging
-- [x] Statistics and chart views for moments and emotions
-- [x] Language preferences and core interface translations
-- [ ] Finish localization of generated insights and remaining messages
-- [ ] Refine onboarding visuals and introduce the planned animated mascot
-- [ ] Polish UI, accessibility, and edge cases
-- [ ] Stabilize automated tests and prepare an initial Android release
+- [x] Personalized onboarding and persistent user name
+- [x] Quick activity logging and moment-history management
+- [x] Activity management with preserved history for disabled activities
+- [x] Primary-emotion logging and chronological feeling history
+- [x] Dashboard quick-add and quick-removal actions
+- [x] Statistics for moments and feelings
+- [x] Highlights and source-attributed facts
+- [x] Interface localization across five languages
+- [x] Localized record confirmation and Undo labels
+- [x] Mascot illustrations on key screens
+- [x] Typography alignment and removal of temporary navigation controls
+- [ ] Final review of remaining secondary strings, accessibility, and small-screen layouts
+- [ ] Validate storage, deletions, and preservation of data across app restarts and updates
+- [ ] Stabilize automated tests, including Dashboard `−` interaction coverage
+- [ ] Prepare signed Android beta builds and test with real users
+- [ ] Prepare and validate iOS/TestFlight beta distribution
 
 ### Premium — planned, not implemented
 
-- [ ] More detailed emotions using a two-level emotion wheel
-- [ ] Optional feelings associated with recorded activities or moments
-- [ ] More advanced personal insights and patterns
-- [ ] Explore integrations with health/activity platforms, subject to feasibility and permissions
+- [ ] Centralize feature access and entitlement state without changing Light records
+- [ ] Two-level emotion selection (primary and more specific emotions)
+- [ ] Optional association between feelings and recorded moments/activities
+- [ ] Deeper statistics and correlations, without claiming causation
+- [ ] Premium presentation and purchase / restore flows
+- [ ] Explore Apple Health and Android Health Connect integration, subject to feasibility, permissions, and privacy requirements
 
-**Product principle:** The Light version supports independent primary-emotion logging. Premium is planned to add detail and context without invalidating existing Light data.
+**Product principle:** Light supports independent primary-emotion logging and access to history. Premium will add detail and context; changing plans must not erase existing Light data.
 
 ## Privacy and project scope
 
-Life in Numbers is designed around personal information. The current MVP prioritizes local recording rather than requiring a cloud account. Cloud synchronization, account infrastructure, and third-party health integrations are **not** claimed as existing features.
+Life in Numbers works with personal records, including emotions. The current Light prototype is local-first and does **not** require an account or claim to offer cloud synchronization. Product analytics, payment systems, and third-party health data imports have **not** been implemented.
 
-This README describes the development prototype, not a finished security or privacy certification. Data handling and release readiness will be reviewed before public distribution.
+Before a public release, privacy disclosures, secure backup/migration options, permissions, release signing, and platform-store requirements need review. If analytics are introduced, usage metrics should be designed to avoid transmitting the content of personal mood entries.
 
 ## Development status
 
-This is an evolving personal software project, built incrementally with an emphasis on learning Flutter/Dart, practical software architecture, and a clear user experience.
+Life in Numbers is an independently developed Flutter learning and product project. The Light feature set is in place and the next milestone is **real-device beta testing**, followed by stabilization. Premium development will build on the same app rather than creating a separate product.
 
-Screenshots, release instructions, and license information can be added when the project is ready for public distribution.
+Screenshots, beta installation instructions, distribution details, and a license can be added once release preparation is complete.
