@@ -11,9 +11,8 @@ class MascotWidget extends StatefulWidget {
   State<MascotWidget> createState() => _MascotWidgetState();
 }
 
-class _MascotWidgetState extends State<MascotWidget> with TickerProviderStateMixin {
+class _MascotWidgetState extends State<MascotWidget> with SingleTickerProviderStateMixin {
   late final AnimationController _idleController;
-  late final AnimationController _waveController;
 
   @override
   void initState() {
@@ -22,23 +21,18 @@ class _MascotWidgetState extends State<MascotWidget> with TickerProviderStateMix
       vsync: this,
       duration: const Duration(milliseconds: 2400),
     )..repeat();
-    _waveController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1700),
-    )..forward();
   }
 
   @override
   void dispose() {
     _idleController.dispose();
-    _waveController.dispose();
     super.dispose();
   }
 
   Widget _layer(String name) {
     return Image.asset(
       'assets/mascot/$name.png',
-      fit: BoxFit.contain,
+      fit: BoxFit.fill,
       gaplessPlayback: true,
       errorBuilder: (context, error, stackTrace) {
         debugPrint('Mascot asset error ($name): $error');
@@ -47,19 +41,12 @@ class _MascotWidgetState extends State<MascotWidget> with TickerProviderStateMix
     );
   }
 
-  Widget _animatedArm(String name, double angle, Alignment origin) {
+  Widget _animatedPart(String name, double angle, Alignment origin) {
     return Transform.rotate(
       angle: angle,
       alignment: origin,
       child: _layer(name),
     );
-  }
-
-  double _waveAngle(double progress) {
-    if (progress <= 0 || progress >= 1) return 0;
-    final envelope = math.sin(progress * math.pi);
-    final oscillation = math.sin(progress * 4 * math.pi);
-    return envelope * (0.12 + oscillation * 0.10);
   }
 
   @override
@@ -68,25 +55,31 @@ class _MascotWidgetState extends State<MascotWidget> with TickerProviderStateMix
       width: widget.size,
       height: widget.size,
       child: AnimatedBuilder(
-        animation: Listenable.merge([_idleController, _waveController]),
+        animation: _idleController,
         builder: (context, child) {
           final phase = _idleController.value * 2 * math.pi;
-          final breathing = math.sin(phase) * 2;
-          final armAngle = math.sin(phase) * 0.035;
-          final waveAngle = _waveAngle(_waveController.value);
+          final breathing = math.sin(phase) * 1.2;
+          final leftArmWave = math.sin(phase) * 0.025;
+          final rightArmSwing = math.sin(phase) * 0.065;
 
           return Transform.translate(
             offset: Offset(0, breathing),
             child: Stack(
               fit: StackFit.expand,
               children: [
-                _layer('left_leg'),
-                _layer('right_leg'),
-                _animatedArm('left_arm', armAngle + waveAngle, const Alignment(0.60, 0.25)),
-                _animatedArm('right_arm', -armAngle, const Alignment(0.55, 0.20)),
-                _layer('body'),
-                _layer('side_knob'),
-                _layer('top_button'),
+                _layer('Left_Leg'),
+                _layer('Right_Leg'),
+                _animatedPart(
+                  'Left_Arm',
+                  leftArmWave,
+                  const Alignment(0.10, 0.10),
+                ),
+                _animatedPart(
+                  'Right_Arm',
+                  rightArmSwing,
+                  const Alignment(0.50, 0.27),
+                ),
+                _layer('Main_Body'),
               ],
             ),
           );
