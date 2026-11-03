@@ -33,6 +33,7 @@ flutter:
 
   assets:
     - assets/mascot/
+    - assets/icon/app_icon.png
 
 flutter_launcher_icons:
   android: true

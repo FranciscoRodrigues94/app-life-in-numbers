@@ -17,6 +17,7 @@ import 'pages/statistics_page.dart';
 import 'services/activity_repository.dart';
 import 'services/category_repository.dart';
 import 'features/onboarding/pages/welcome_page.dart';
+import 'features/onboarding/pages/splash_page.dart';
 import 'features/settings/pages/settings_page.dart';
 import 'l10n/app_localizations.dart';
 import 'services/display_name_service.dart';
@@ -61,6 +62,7 @@ class _AppEntryPageState extends State<AppEntryPage> {
   bool _isLoading = true;
   bool _showWelcome = false;
   bool _hasError = false;
+  bool _splashFinished = false;
 
   @override
   void initState() {
@@ -89,6 +91,11 @@ class _AppEntryPageState extends State<AppEntryPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_splashFinished) {
+      return SplashPage(onFinished: () {
+        if (mounted) setState(() => _splashFinished = true);
+      });
+    }
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
