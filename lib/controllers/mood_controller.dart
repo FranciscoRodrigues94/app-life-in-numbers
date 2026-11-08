@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-
 import '../models/default_emotions.dart';
 import '../models/life_mood_entry.dart';
 import '../services/mood_repository.dart';
@@ -15,10 +14,11 @@ class MoodController extends ChangeNotifier {
   String? _saveError;
 
   MoodController({MoodRepository? repository})
-    : _repository = repository ?? MoodRepository();
+      : _repository = repository ?? MoodRepository();
 
   List<LifeMoodEntry> get entries => List.unmodifiable(_entries);
   bool get isLoading => _isLoading;
+  bool get isDisposed => _disposed;
   String? get error => _error;
   String? get saveError => _saveError;
 
@@ -81,7 +81,7 @@ class MoodController extends ChangeNotifier {
 
     final now = DateTime.now();
     final entry = LifeMoodEntry(
-      id: '${now.microsecondsSinceEpoch}_${_nextId++}',
+      id: '${now.microsecondsSinceEpoch}_${nextId()}',
       primaryEmotionId: primaryEmotionId,
       occurredAt: now,
     );
@@ -90,6 +90,36 @@ class MoodController extends ChangeNotifier {
     _notifyIfActive();
     _queueSave();
     return entry;
+  }
+
+  int nextId() => _nextId++;
+
+  bool addWidgetFeeling({
+    required String id,
+    required String primaryEmotionId,
+    required DateTime occurredAt,
+  }) {
+    if (_disposed) throw StateError('MoodController is disposed.');
+    if (_isLoading || _error != null) {
+      throw StateError('Feelings are not ready to be recorded.');
+    }
+    if (!DefaultEmotions.isPrimaryEmotion(primaryEmotionId)) {
+      throw ArgumentError.value(
+        primaryEmotionId,
+        'primaryEmotionId',
+        'Unknown primary emotion.',
+      );
+    }
+    if (_entries.any((entry) => entry.id == id)) return false;
+
+    _entries.add(LifeMoodEntry(
+      id: id,
+      primaryEmotionId: primaryEmotionId,
+      occurredAt: occurredAt,
+    ));
+    _notifyIfActive();
+    _queueSave();
+    return true;
   }
 
   bool removeFeeling(String entryId) {

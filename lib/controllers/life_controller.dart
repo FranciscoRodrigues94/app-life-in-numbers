@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import '../models/life_event.dart';
 import '../services/activity_migration_service.dart';
@@ -86,6 +85,27 @@ class LifeController extends ChangeNotifier {
     _notifyIfActive();
     _queueSave();
     return event;
+  }
+
+  bool addWidgetEvent({
+    required String id,
+    required String activityId,
+    required DateTime occurredAt,
+  }) {
+    if (_disposed) throw StateError('LifeController is disposed.');
+    if (_isLoading || _error != null) {
+      throw StateError('Moments are not ready to be recorded.');
+    }
+    if (_events.any((event) => event.id == id)) return false;
+
+    _events.add(LifeEvent(
+      id: id,
+      activityId: activityId,
+      occurredAt: occurredAt,
+    ));
+    _notifyIfActive();
+    _queueSave();
+    return true;
   }
 
   bool removeEvent(String eventId) {

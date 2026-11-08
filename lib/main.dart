@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +20,8 @@ import 'features/onboarding/pages/splash_page.dart';
 import 'features/settings/pages/settings_page.dart';
 import 'l10n/app_localizations.dart';
 import 'services/display_name_service.dart';
+import 'services/quick_track_widget_service.dart';
+import 'services/quick_track_action_bridge.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -131,7 +132,7 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   final LifeController _lifeController = LifeController();
   final MoodController _moodController = MoodController();
   final ActivityRepository _activityRepository = ActivityRepository();
@@ -148,22 +149,53 @@ class _MainPageState extends State<MainPage> {
   String _userName = '';
   OverlayEntry? _recordNotice;
   Timer? _recordNoticeTimer;
+  bool _syncingQuickTrack = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _lifeController.addListener(_onLifeChanged);
     _moodController.addListener(_onMoodChanged);
     _loadData();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _syncQuickTrackActions();
+    }
+  }
+
+  Future<void> _syncQuickTrackActions() async {
+    if (_syncingQuickTrack || _isLoading || !mounted || _loadError != null) return;
+    if (_lifeController.isLoading || _moodController.isLoading) return;
+    if (_lifeController.error != null || _moodController.error != null) return;
+
+    _syncingQuickTrack = true;
+    try {
+      final imported = await QuickTrackActionBridge.importPending(
+        lifeController: _lifeController,
+        moodController: _moodController,
+      );
+      if (imported > 0 && mounted) _updateQuickTrackWidget();
+    } catch (error) {
+      debugPrint('Quick Track synchronization failed: $error');
+    } finally {
+      _syncingQuickTrack = false;
+    }
+  }
+
   void _onMoodChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    _updateQuickTrackWidget();
   }
 
   void _onLifeChanged() {
     if (!mounted) return;
     setState(() {});
+    _updateQuickTrackWidget();
 
     final saveError = _lifeController.saveError;
     if (saveError == null) {
@@ -203,6 +235,51 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  void _updateQuickTrackWidget() {
+    if (!mounted || _isLoading || _lifeController.isLoading || _moodController.isLoading ||
+        _lifeController.error != null || _moodController.error != null) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final activeActivities = {
+      for (final activity in _activities)
+        if (activity.isActive) activity.id: activity,
+    };
+    final moments = _lifeController.records.entries
+        .where((entry) => entry.value > 0 && activeActivities.containsKey(entry.key))
+        .toList()
+      ..sort((a, b) {
+        final frequency = b.value.compareTo(a.value);
+        return frequency != 0 ? frequency : a.key.compareTo(b.key);
+      });
+    final feelings = _moodController.emotionCounts.entries
+        .where((entry) => entry.value > 0)
+        .toList()
+      ..sort((a, b) {
+        final frequency = b.value.compareTo(a.value);
+        return frequency != 0 ? frequency : a.key.compareTo(b.key);
+      });
+
+    String emotionName(String id) => switch (id) {
+      'joy' => l10n.dashboardEmotionJoy,
+      'happiness' => l10n.dashboardEmotionHappiness,
+      'sadness' => l10n.dashboardEmotionSadness,
+      'anger' => l10n.dashboardEmotionAnger,
+      'fear' => l10n.dashboardEmotionFear,
+      'disgust' => l10n.dashboardEmotionDisgust,
+      'surprise' => l10n.dashboardEmotionSurprise,
+      _ => id,
+    };
+
+    final topMoments = moments.take(2).toList();
+    final topFeelings = feelings.take(2).toList();
+    QuickTrackWidgetService.update(
+      momentIds: topMoments.map((entry) => entry.key).toList(),
+      momentNames: topMoments.map((entry) => DisplayNameService.activity(activeActivities[entry.key]!, l10n)).toList(),
+      feelingIds: topFeelings.map((entry) => entry.key).toList(),
+      feelingNames: topFeelings.map((entry) => emotionName(entry.key)).toList(),
+    );
+  }
+
   Future<void> _loadData() async {
     try {
       await _lifeController.loadEvents();
@@ -223,6 +300,8 @@ class _MainPageState extends State<MainPage> {
         _categories = loadedCategories;
         _userName = savedName;
       });
+      _updateQuickTrackWidget();
+      await _syncQuickTrackActions();
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -608,6 +687,7 @@ class _MainPageState extends State<MainPage> {
       final activities = await _activityRepository.loadActivities();
       if (!mounted) return;
       setState(() => _activities = activities);
+      _updateQuickTrackWidget();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -618,6 +698,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _hideRecordNotice();
     _lifeController.removeListener(_onLifeChanged);
     _lifeController.dispose();
