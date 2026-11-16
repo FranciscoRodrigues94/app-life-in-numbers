@@ -6,7 +6,7 @@ Life in Numbers is an offline-first mobile application built with **Flutter and 
 
 The application is developed **Android-first**, with iOS support planned. Its first milestone is a useful, approachable **Light** experience, with additional **Premium** capabilities planned for future development.
 
-> **Project status:** Light feature set implemented. Android beta preparation and native home screen widget development are in progress. The application is not yet published in an app store.
+> **Project status:** Light feature set and Android home screen widget implemented. Development is paused pending final Settings improvements and testing on a physical Android device before private beta distribution. The application is not yet published in an app store.
 
 ## What works today
 
@@ -23,8 +23,8 @@ The application is developed **Android-first**, with iOS support planned. Its fi
 ### User experience
 
 - **Animated mascot:** A custom character with animated body parts on the Welcome screen and expressive illustrations throughout the application.
-- **Animated splash screen:** A short branded animation displayed during Flutter application startup.
-- **Custom Android launcher icon:** A recognizable mascot-based icon generated for Android launchers.
+- **Animated splash screen:** A short branded animation implemented for Flutter startup; consistency on physical Android devices still needs validation.
+- **Custom Android launcher icon:** A mascot-based adaptive icon with circular launcher presentation, tested in the Android emulator.
 - **Quick corrections:** Remove individual moment entries through their history, or remove the latest occurrence of an emotion from the Dashboard.
 - **Localized interface:** English, German, Portuguese (Portugal), Spanish, and French.
 - **Design system:** Consistent colors, typography, rounded components, and Material 3-based interface patterns.
@@ -38,17 +38,18 @@ The application is developed **Android-first**, with iOS support planned. Its fi
 
 Some secondary UI messages, accessibility details, and edge cases remain under review during beta preparation.
 
-## Android Home Screen Widget — In Development
+## Android Home Screen Widget — Implemented (Real-Device Testing Pending)
 
-A compact **2 × 2 Android home screen widget** is being developed to make everyday tracking faster.
+A compact **2 × 2 Android home screen widget** provides quick tracking from the Android home screen. It has been tested in an emulator; physical-device validation is still pending.
 
-### Planned behavior
+### Implemented behavior
 
 - Automatically display the two most frequently recorded moments.
 - Automatically display the two most frequently recorded primary emotions.
-- Allow users to record a moment or feeling directly from the widget.
+- Allow users to record a moment or feeling directly from the widget without opening the application.
 - Provide a `+` shortcut that opens the application's Dashboard.
-- Update the displayed shortcuts as the user's habits change.
+- Update the displayed shortcuts as the user's habits change when the application synchronizes.
+- Show visual feedback after a successful widget tap.
 
 ### Current implementation status
 
@@ -56,13 +57,15 @@ A compact **2 × 2 Android home screen widget** is being developed to make every
 - [x] Flutter `home_widget` dependency added
 - [x] Initial native Android layout and drawable resources
 - [x] Android widget provider and manifest registration implemented
-- [ ] Verify native Android compilation and launcher rendering
-- [ ] Connect the widget to real activity and emotion frequencies
-- [ ] Implement direct recording from the widget
-- [ ] Add reliable synchronization and duplicate prevention
-- [ ] Validate widget behavior on Android devices
+- [x] Verify native Android compilation and widget rendering in an emulator
+- [x] Connect the widget to real activity and emotion frequencies
+- [x] Implement direct recording from the widget
+- [x] Implement pending-action synchronization and duplicate prevention
+- [x] Add visual feedback for widget taps
+- [ ] Validate widget recording, synchronization, and persistence on a physical Android device
+- [ ] Confirm the `+` shortcut consistently returns to the Dashboard
 
-Direct widget recording is **not yet complete**. The implementation must preserve existing records and remain compatible with the application's offline-first storage architecture.
+Direct widget recording works in emulator testing. Actions are queued in native Android storage and imported into Flutter history, with duplicate prevention; reliability across app restarts and on physical devices still requires beta testing.
 
 ## Interaction design
 
@@ -105,7 +108,7 @@ The application separates persistent identifiers from translated display names t
 | Local storage | SharedPreferencesAsync |
 | Architecture | Controllers, models, repositories, services |
 | Android integration | Kotlin, XML, AndroidManifest |
-| Home screen widget | home_widget (integration in progress) |
+| Home screen widget | home_widget (Android implementation; physical-device validation pending) |
 | Version control | Git and GitHub |
 
 The codebase separates presentation, application state, record management, persistence, and display-name logic.
@@ -219,17 +222,19 @@ The intended beta distribution route is TestFlight, following a successful iOS b
 - [x] Localized recording confirmations and Undo actions
 - [x] Redesigned mascot illustrations
 - [x] Animated Welcome mascot
-- [x] Custom Android launcher icon
+- [x] Custom Android adaptive launcher icon (emulator-validated)
 - [x] Animated Flutter splash screen
 
 ### Light — Beta preparation
 
-- [ ] Complete Android home screen widget
-- [ ] Validate native widget interactions
+- [x] Implement Android home screen widget and native quick-record interactions
+- [ ] Validate widget interactions and synchronization on a physical Android device
+- [ ] Finalize the Settings page (profile, language, privacy/about information)
 - [ ] Review remaining secondary translations
 - [ ] Improve accessibility and small-screen behavior
 - [ ] Verify persistence across application restarts and updates
 - [ ] Stabilize automated tests and Dashboard correction flows
+- [ ] Validate adaptive icon, splash-screen behavior, and complete user flows on a physical Android device
 - [ ] Complete real-device Android beta testing
 - [ ] Prepare signed APK distribution to testers
 - [ ] Prepare iOS and TestFlight testing
@@ -277,7 +282,7 @@ Life in Numbers is an independently developed, AI-assisted Flutter learning and 
 
 The project combines application development, user interface design, state management, data persistence, localization, Android native integration, and iterative testing.
 
-The immediate development milestone is completing the Android home screen widget and preparing the Light version for real-device beta testing.
+The Android home screen widget is implemented and works in emulator testing. Next steps are final Settings improvements, physical Android device validation (including splash screen, launcher icon, widget, and data persistence), and private Light beta preparation before Premium development.
 
 Future Premium functionality will extend the existing application rather than creating a separate product.
 
